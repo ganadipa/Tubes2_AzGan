@@ -42,7 +42,7 @@ const Main = () => {
 
   return (
     <div className='flex items-center justify-center h-[100vh] w-[100vw] overflow-hidden relative'>
-        <NavigationContainer/>
+        <NavigationContainer clickable/>
         {NodesRef.map((node, i) => {
           return <div ref = {node} className={`absolute w-5 h-5 bg-white rounded-full`}></div>
         })}
@@ -50,15 +50,23 @@ const Main = () => {
   )
 }
 
-const NavigationContainer = () => {
+export const NavigationContainer = ({clickable = false}: {clickable?:boolean}) => {
   const navigate = useNavigate();
   const NavigateMain = () => {
-    navigate('/game');
+    if (clickable) {
+      navigate('/Game');
+    }
   }
 
   return (
-    <section className='p-4 b-2 border-red relative z-10 bg-white rounded cursor-pointer' onClick={() => NavigateMain()}>
+    <section className={`px-6 py-4 b-2 border-red relative z-10 bg-white rounded ${clickable ? 'cursor-pointer':''}`} onClick={() => NavigateMain()}>
+      <div className='flex gap-8'>
       <h1 className='text-4xl font-bold text-[#D17A22] font-poppins'><span className='text-[#0A3A6B]'>Go</span> WikiRace</h1>
+      {
+        clickable || <img src = "Wikipedia.png" alt = '' className='h-full aspect-auto w-12'/>
+        
+      }
+      </div>
     </section>
   )
 }

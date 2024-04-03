@@ -44,8 +44,8 @@ const NotFound: React.FC = () => {
       <img  src= "asteroids-bg.png" alt='' className='absolute md:h-[120vh] md:left-[-25vw] max-md:w-[100vw] max-md:bottom-[-60vw] sm:h-[50vh]' ref = {starRef}/>
       <img  src= "spark.png" alt='' className='absolute h-[100vh] right-0 z-0'/>
 
-      <img  src= "spark-mini.png" alt='' className='absolute h-[50vh] right-0 z-0'/>
-      <img  src= "spark-mini.png" alt='' className='absolute h-[50vh] right-0 z-0'/>
+      {/* <img  src= "spark-mini.png" alt='' className='absolute h-[50vh] right-0 z-0'/>
+      <img  src= "spark-mini.png" alt='' className='absolute h-[50vh] right-0 z-0'/> */}
       {/* <img  src= "asteroids-sm.png" alt='' className='absolute h-[50vh] right-4 z-0'/>
       <img  src= "asteroids-mini-sm.png" alt='' className='absolute h-[50vh] right-4 z-0'/> */}
 
