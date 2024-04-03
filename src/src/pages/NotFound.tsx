@@ -46,8 +46,8 @@ const NotFound: React.FC = () => {
 
       <img  src= "spark-mini.png" alt='' className='absolute h-[50vh] right-0 z-0'/>
       <img  src= "spark-mini.png" alt='' className='absolute h-[50vh] right-0 z-0'/>
-      <img  src= "asteroids-sm.png" alt='' className='absolute h-[50vh] right-4 z-0'/>
-      <img  src= "asteroids-mini-sm.png" alt='' className='absolute h-[50vh] right-4 z-0'/>
+      {/* <img  src= "asteroids-sm.png" alt='' className='absolute h-[50vh] right-4 z-0'/>
+      <img  src= "asteroids-mini-sm.png" alt='' className='absolute h-[50vh] right-4 z-0'/> */}
 
 
     </div>
