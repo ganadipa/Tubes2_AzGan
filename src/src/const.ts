@@ -7,5 +7,4 @@ export const COLOR = [
     "#BDBDBD", // Borders/Dividers: A neutral silver for subtle borders and dividing lines.},
     "#FFEB3B", // Interactive Highlights: A bright yellow for interactive elements that need to stand out.}
     "#304FFE" // Links/Interactive Elements: A deep blue for links and interactive features.}
-  
 ]

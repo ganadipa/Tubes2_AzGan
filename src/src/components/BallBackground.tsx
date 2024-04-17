@@ -52,7 +52,8 @@ const BallBackground = ({children, className,maximumBallSize,minimumBallSize, bl
       const current = node.current;
       if (!current) return;
 
-      const tt = t / 5000;
+      const tt = Math.sin(t / 15000)*3;
+
       const i = idx > NUMNODES/2 ? idx : NUMNODES - idx - 1;
 
       const translateX = i*(i&1?-1:1)*Math.sin((tt**2 + i*tt + 1 % 100)/20)*15
@@ -67,7 +68,7 @@ const BallBackground = ({children, className,maximumBallSize,minimumBallSize, bl
           return <div ref = {node} className={`absolute w-5 h-5 bg-white rounded-full`}></div>
         })}
 
-          <div className={`${className} absolute w-full h-full relative z-10 ${blur ? "backdrop-blur-sm":""}`}>{children}</div>
+          <div className={`${className} absolute w-full h-full relative z-10 bg-gradient-to-b from-[#0B1F36]/15 from-60% to-sky-500 to-96% ${blur ? "backdrop-blur-sm":""}`}>{children}</div>
 
     </div>
   )

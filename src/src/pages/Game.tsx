@@ -9,11 +9,12 @@ type Node = {
   label: string,
   url: string,
   level: number,
+  adjacencies: number[],
 }
 
 type GraphResult = {
   nodes: Node[],
-  adjacencieList: number[][],
+
 }
 
 type Position = {
@@ -23,43 +24,48 @@ type Position = {
 
 const result = {
   nodes: [
-    {id: 0, label: 'A', url: 'https://en.wikipedia.org/wiki/A', level: 0},
-    {id: 1, label: 'B', url: 'https://en.wikipedia.org/wiki/B', level: 1},
-    {id: 2, label: 'C', url: 'https://en.wikipedia.org/wiki/C', level: 1},
-    {id: 3, label: 'D', url: 'https://en.wikipedia.org/wiki/D', level: 2},
-    {id: 4, label: 'E', url: 'https://en.wikipedia.org/wiki/E', level: 2},
-    {id: 5, label: 'F', url: 'https://en.wikipedia.org/wiki/F', level: 3},
-    {id: 6, label: 'G', url: 'https://en.wikipedia.org/wiki/G', level: 3},
-  ],
-  adjacencieList: [
-    [1, 2],
-    [3, 4],
-    [5, 6],
+    {id: 0, label: 'A', url: 'https://en.wikipedia.org/wiki/A', level: 0, adjacencies: [1, 2]},
+    {id: 1, label: 'B', url: 'https://en.wikipedia.org/wiki/B', level: 1, adjacencies: [3, 4]},
+    {id: 2, label: 'C', url: 'https://en.wikipedia.org/wiki/C', level: 1, adjacencies: []},
+    {id: 3, label: 'D', url: 'https://en.wikipedia.org/wiki/D', level: 2, adjacencies: [5, 6]},
+    {id: 4, label: 'E', url: 'https://en.wikipedia.org/wiki/E', level: 2, adjacencies: []},
+    {id: 5, label: 'F', url: 'https://en.wikipedia.org/wiki/F', level: 3, adjacencies: []},
+    {id: 6, label: 'G', url: 'https://en.wikipedia.org/wiki/G', level: 3, adjacencies: []},
   ],
 }
 
 const Game = () => {
 
   return (
-    <BallBackground blur maximumBallSize={50} minimumBallSize={20}>
+
       <GameSection/>
-    </BallBackground>
+
   )
 }
 
 const GameSection = () => {
   const [searchQuery, setSearchQuery] = React.useState<string>('test');
 return  <main className='overflow-x-hidden'>
+      <BallBackground blur maximumBallSize={50} minimumBallSize={20}>
   <div>
       <NavigationContainer/>
   </div>
-  <section className='flex flex-col w-full h-full flex items-center justify-center max-md:my-8 md:my-12 text-center text-white'>
-      <h5 className='md:text-4xl max-md:text-2xl  font-semibold'>Find the shortest path</h5>
-      <span className='md:text-xl max-md:text-md'>from</span>
-      <InputWithSuggestions searchQuery = {searchQuery} setSearchQuery = {setSearchQuery}/>
-      <span className='md:text-xl max-md:text-md'>to</span>
-      <InputWithSuggestions searchQuery = {searchQuery} setSearchQuery = {setSearchQuery}/>
-      <ResultGraph result = {result}/>
+  <section className='flex flex-col w-full flex items-center gap-8 justify-center max-md:my-8 md:my-12 text-center text-white'>
+      <h2 className='lg:text-6xl md:text-4xl max-md:text-2xl  font-semibold'>Find the shortest path</h2>
+      <div className='flex gap-12'>
+        <div>
+          <span className='lg:text-4xl md:text-3xl max-md:text-xl'>from</span>
+          <InputWithSuggestions searchQuery = {searchQuery} setSearchQuery = {setSearchQuery}/>
+        </div>
+        <div>
+          <span className='lg:text-4xl md:text-3xl max-md:text-xl'>to</span>
+          <InputWithSuggestions searchQuery = {searchQuery} setSearchQuery = {setSearchQuery}/>
+        </div>
+      </div>
+  </section>
+  </BallBackground>
+  <section className='flex items-center justify-center h-screen w-screen bg-sky-500 '>
+    <ResultGraph result={result}/>
   </section>
 </main>
 }
@@ -104,6 +110,19 @@ const InputWithSuggestions: React.FC<InputWithSuggestionsProps> = ({ searchQuery
 }
 
 const ResultGraph = ({ result }: {result: GraphResult}) => {
+  const [isMediumWidth, setIsMediumWidth] = React.useState<boolean>(window.innerWidth > 768);
+
+  const handleResize = () => {
+    setIsMediumWidth(window.innerWidth > 768);
+  }
+
+  useEffect(() => {
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+
+
   let numLevels = 0;
   for (let i = 0; i < result.nodes.length; i++) {
     numLevels = Math.max(numLevels, result.nodes[i].level + 1);
@@ -121,21 +140,50 @@ const ResultGraph = ({ result }: {result: GraphResult}) => {
 
   const gap = 100 / (numLevels + 1);
 
-  console.log("Positions")
-  console.log(positions)
-  console.log(gap*(positions[0].col + 1))
-  console.log(rowCounter[result.nodes[2].level])
-  console.log((100/(rowCounter[result.nodes[2].level] + 1))*(positions[2].row + 1))
 
   return (
     <div className='w-1/2 aspect-video bg-white border border-[#FFEB3B] relative rounded'>
-      {/* Make sure to pass a style object with a percentage value */}
+      <svg style={{ width: "100%", height: "100%", position: "absolute", top: 0, left: 0 }}>
+      {/* Define the arrow marker */}
+        <defs>
+          <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+            <path d="M0,0 L0,6 L9,3 z" fill="black" />
+          </marker>
+        </defs>
+      {/* Draw edges with arrows in the middle */}
+      {
+        Array.from({length: result.nodes.length}).map((_, i) => {
+          const parent = result.nodes[i];
+          const leftParent = `calc(${gap*(positions[i].col + 1)}% + 16px)`;
+          const topParent = `calc(${(100/(rowCounter[parent.level] + 1))*(positions[i].row + 1)}% + 16px)`;
+  
+          return parent.adjacencies.map(adjIndex => {
+            const child = result.nodes[adjIndex];
+            const leftChild = `calc(${gap*(positions[adjIndex].col + 1)}% + 16px)`;
+            const topChild = `calc(${(100/(rowCounter[child.level] + 1))*(positions[adjIndex].row + 1)}% + 16px)`;
+  
+            const midX = `calc((${leftParent} + ${leftChild}) / 2)`;
+            const midY = `calc((${topParent} + ${topChild}) / 2)`;
+  
+            return (
+              <>
+                <line x1={leftParent} y1={topParent} x2={midX} y2={midY} stroke="black" strokeWidth="2" marker-end="url(#arrow)" />
+                <line x1={midX} y1={midY} x2={leftChild} y2={topChild} stroke="black" strokeWidth="2" />
+              </>
+            );
+          })
+        })
+      }
+      </svg>
+  
+      {/* Draw nodes*/}
       {
         Array.from({length: result.nodes.length}).map((_, i) => {
           const node = result.nodes[i];
           const left = `${gap*(positions[i].col + 1)}%`;
           const top = `${(100/(rowCounter[node.level] + 1))*(positions[i].row + 1)}%`;
-          return <NodeComponent node={node} style={{left, top}}/>
+  
+          return <NodeComponent key={node.id} node={node} style={{left, top}}/> 
         })
       }
     </div>
@@ -145,7 +193,7 @@ const ResultGraph = ({ result }: {result: GraphResult}) => {
 const NodeComponent = ({ node, className, style }: {node: Node, className?: string, style?: React.CSSProperties | undefined}) => {
   return (
     <div className={`${className} absolute`} style={style}>
-      <div className=" relative w-8 h-8  rounded-full" style={{
+      <div className="relative w-8 h-8  rounded-full" style={{
         backgroundColor: COLOR[node.level % 8],
       }}>
         <span className='absolute top-[-10px] right-[-5px] text-black'> {node.label} </span>
