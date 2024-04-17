@@ -24,13 +24,12 @@ type Position = {
 
 const result = {
   nodes: [
-    {id: 0, label: 'A', url: 'https://en.wikipedia.org/wiki/A', level: 0, adjacencies: [1, 2]},
+    {id: 0, label: 'Azmi Mahmud Bazeid Kapten Azmi', url: 'https://en.wikipedia.org/wiki/A', level: 0, adjacencies: [1, 2]},
     {id: 1, label: 'B', url: 'https://en.wikipedia.org/wiki/B', level: 1, adjacencies: [3, 4]},
-    {id: 2, label: 'C', url: 'https://en.wikipedia.org/wiki/C', level: 1, adjacencies: []},
-    {id: 3, label: 'D', url: 'https://en.wikipedia.org/wiki/D', level: 2, adjacencies: [5, 6]},
-    {id: 4, label: 'E', url: 'https://en.wikipedia.org/wiki/E', level: 2, adjacencies: []},
+    {id: 2, label: 'C', url: 'https://en.wikipedia.org/wiki/C', level: 1, adjacencies: [4]},
+    {id: 3, label: 'D', url: 'https://en.wikipedia.org/wiki/D', level: 2, adjacencies: [5]},
+    {id: 4, label: 'E', url: 'https://en.wikipedia.org/wiki/E', level: 2, adjacencies: [5]},
     {id: 5, label: 'F', url: 'https://en.wikipedia.org/wiki/F', level: 3, adjacencies: []},
-    {id: 6, label: 'G', url: 'https://en.wikipedia.org/wiki/G', level: 3, adjacencies: []},
   ],
 }
 
@@ -45,8 +44,9 @@ const Game = () => {
 
 const GameSection = () => {
   const [searchQuery, setSearchQuery] = React.useState<string>('test');
+  const [haveResults, setHaveResults] = React.useState<boolean>(true);
 return  <main className='overflow-x-hidden'>
-      <BallBackground blur maximumBallSize={50} minimumBallSize={20}>
+      <BallBackground blur maximumBallSize={50} minimumBallSize={20} className='bg-gradient-to-b from-[#0B1F36]/15 from-60% to-sky-500 to-96%'>
   <div>
       <NavigationContainer/>
   </div>
@@ -64,9 +64,19 @@ return  <main className='overflow-x-hidden'>
       </div>
   </section>
   </BallBackground>
-  <section className='flex items-center justify-center h-screen w-screen bg-sky-500 '>
+  { haveResults &&
+  <>
+    <section className='flex flex-col gap-4  items-center justify-center h-screen w-screen bg-sky-500 '>
+      <h2 className='lg:text-4xl md:text-3xl max-md:text-xl font-semibold text-white'>Wikirace path result in graph</h2>
     <ResultGraph result={result}/>
   </section>
+  <BallBackground blur maximumBallSize={50} minimumBallSize={20} className='bg-gradient-to-t from-[#0B1F36]/15 from-80% to-sky-500 to-9%'>
+    <section>
+      hello world
+    </section>
+  </BallBackground>
+  </>
+}
 </main>
 }
 
@@ -142,8 +152,8 @@ const ResultGraph = ({ result }: {result: GraphResult}) => {
 
 
   return (
-    <div className='w-1/2 aspect-video bg-white border border-[#FFEB3B] relative rounded'>
-      <svg style={{ width: "100%", height: "100%", position: "absolute", top: 0, left: 0 }}>
+    <div className='w-3/4 aspect-video bg-white border border-[#FFEB3B] relative rounded'>
+      <svg style={{ width: "100%", height: "100%", position: "absolute", top: 16, left: 16 }}>
       {/* Define the arrow marker */}
         <defs>
           <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
@@ -154,21 +164,22 @@ const ResultGraph = ({ result }: {result: GraphResult}) => {
       {
         Array.from({length: result.nodes.length}).map((_, i) => {
           const parent = result.nodes[i];
-          const leftParent = `calc(${gap*(positions[i].col + 1)}% + 16px)`;
-          const topParent = `calc(${(100/(rowCounter[parent.level] + 1))*(positions[i].row + 1)}% + 16px)`;
+          const leftParent = gap*(positions[i].col + 1);
+          const topParent = (100/(rowCounter[parent.level] + 1))*(positions[i].row + 1);
   
           return parent.adjacencies.map(adjIndex => {
             const child = result.nodes[adjIndex];
-            const leftChild = `calc(${gap*(positions[adjIndex].col + 1)}% + 16px)`;
-            const topChild = `calc(${(100/(rowCounter[child.level] + 1))*(positions[adjIndex].row + 1)}% + 16px)`;
+            const leftChild = gap*(positions[adjIndex].col + 1);
+            const topChild = (100/(rowCounter[child.level] + 1))*(positions[adjIndex].row + 1);
   
-            const midX = `calc((${leftParent} + ${leftChild}) / 2)`;
-            const midY = `calc((${topParent} + ${topChild}) / 2)`;
+            const midX = `${(leftParent + leftChild)/2}%`;
+            const midY = `${(topParent + topChild)/2}%`;
   
             return (
               <>
-                <line x1={leftParent} y1={topParent} x2={midX} y2={midY} stroke="black" strokeWidth="2" marker-end="url(#arrow)" />
-                <line x1={midX} y1={midY} x2={leftChild} y2={topChild} stroke="black" strokeWidth="2" />
+                <line x1 = {`${leftParent}%`} y1 = {`${topParent}%`} x2 = {midX} y2 = {midY} stroke='black' strokeWidth='2' markerEnd="url(#arrow)"></line>
+                <line x1={midX} y1={midY} x2={`${leftChild}%`} y2={`${topChild}%`} stroke="black" strokeWidth="2" />
+
               </>
             );
           })
