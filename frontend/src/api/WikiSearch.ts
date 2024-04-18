@@ -30,7 +30,7 @@ export function useWikiSearch(searchQuery: string):{
     const fetchData = async () => {
       setIsLoading(true);
       setError(false);
-      const endpoint = `https://en.wikipedia.org/w/api.php?action=query&format=json&origin=*&generator=prefixsearch&gpslimit=5&gpssearch=${searchQuery}`;
+      const endpoint = `https://en.wikipedia.org/w/api.php?action=query&format=json&origin=*&generator=prefixsearch&gpslimit=50&gpssearch=${searchQuery}`;
       
       try {
         const response = await fetch(endpoint);
