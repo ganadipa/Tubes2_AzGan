@@ -65,7 +65,7 @@ const BallBackground = ({children, className,maximumBallSize,minimumBallSize, bl
   return (
     <div className='flex items-center justify-center h-[100vh] w-[100vw] overflow-hidden relative'>
         {NodesRef.map((node, i) => {
-          return <div ref = {node} className={`absolute w-5 h-5 bg-white rounded-full`}></div>
+          return <div ref = {node} key = {i}className={`absolute w-5 h-5 bg-white rounded-full`}></div>
         })}
 
           <div className={`${className} absolute w-full h-full relative z-10 ${blur ? "backdrop-blur-sm":""}`}>{children}</div>

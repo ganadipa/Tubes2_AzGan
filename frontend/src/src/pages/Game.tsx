@@ -1,8 +1,10 @@
-import React, { useEffect, useRef } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { NavigationContainer } from './Main'
 import BallBackground from '../components/BallBackground'
 import { WikiResult, useWikiSearch } from '../api/WikiSearch'
 import { COLOR } from '../const'
+import MethodSwitch from '../components/Switch'
+import toast from 'react-hot-toast'
 
 type Node = {
   id: number,
@@ -43,30 +45,27 @@ const Game = () => {
 }
 
 const GameSection = () => {
-  const [searchQuery, setSearchQuery] = React.useState<string>('test');
-  const [haveResults, setHaveResults] = React.useState<boolean>(true);
+  const [inputResults, setInputResults] = React.useState([]);
+
+
 return  <main className='overflow-x-hidden'>
       <BallBackground blur maximumBallSize={50} minimumBallSize={20} className='bg-gradient-to-b from-[#0B1F36]/15 from-60% to-sky-500 to-96%'>
   <div>
       <NavigationContainer/>
   </div>
   <section className='flex flex-col w-full flex items-center gap-8 justify-center max-md:my-8 md:my-12 text-center text-white'>
-      <h2 className='lg:text-6xl md:text-4xl max-md:text-2xl  font-semibold'>Find the shortest path</h2>
-      <div className='flex gap-12'>
-        <div>
-          <span className='lg:text-4xl md:text-3xl max-md:text-xl'>from</span>
-          <InputWithSuggestions searchQuery = {searchQuery} setSearchQuery = {setSearchQuery}/>
-        </div>
-        <div>
-          <span className='lg:text-4xl md:text-3xl max-md:text-xl'>to</span>
-          <InputWithSuggestions searchQuery = {searchQuery} setSearchQuery = {setSearchQuery}/>
-        </div>
-      </div>
+    <InputSection/>
   </section>
   </BallBackground>
-  { haveResults &&
-  <>
-    <section className='flex flex-col gap-4  items-center justify-center h-screen w-screen bg-sky-500 '>
+  <ResultSection />
+</main>
+}
+
+const ResultSection = () => {
+
+  return (
+    <>
+  <section className='flex flex-col gap-4  items-center justify-center h-screen w-screen bg-sky-500 '>
       <h2 className='lg:text-4xl md:text-3xl max-md:text-xl font-semibold text-white'>Wikirace path result in graph</h2>
     <ResultGraph result={result}/>
   </section>
@@ -76,48 +75,116 @@ return  <main className='overflow-x-hidden'>
     </section>
   </BallBackground>
   </>
+  );
 }
-</main>
-}
+
+const InputSection = () => {
+  const [from, setFrom] = React.useState<string>('');
+  const [to, setTo] = React.useState<string>('');
+  const [BFSMethod, setBFSMethod] = React.useState<boolean>(true);
+
+  const [settedFrom, setSettedFrom] = React.useState<boolean>(false);
+  const [settedTo, setSettedTo] = React.useState<boolean>(false);
+
+  function handleSwitchChange(event: React.ChangeEvent<HTMLInputElement>) {
+    setBFSMethod(event.target.checked);
+  }
+
+  function handleSubmit() {
+    if (!settedFrom || !settedTo) {
+      toast.error("Use the suggestions to set the 'From' and 'To' fields.")
+      return;
+    }
+  }
+
+  return (
+    <>
+      <h2 className='text-2xl md:text-4xl lg:text-6xl font-semibold text-center my-5'>Find the Shortest Path</h2>
+      <div className='flex flex-col items-center'>
+        <MethodSwitch BFSMethod={BFSMethod} handleChange={handleSwitchChange} />
+        <div className='flex flex-col md:flex-row gap-8 items-center my-4'>
+          <div>
+            <span className='text-xl md:text-3xl lg:text-4xl'>From</span>
+            <InputWithSuggestions searchQuery={from} setSearchQuery={setFrom} setted={settedFrom} setSetted={setSettedFrom} />
+          </div>
+          <div>
+            <span className='text-xl md:text-3xl lg:text-4xl'>To</span>
+            <InputWithSuggestions searchQuery={to} setSearchQuery={setTo} setted={settedTo} setSetted={setSettedTo} />
+          </div>
+        </div>
+        <button className='bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition-colors duration-200 ease-in-out' onClick={() => handleSubmit()}>
+          Find Path
+        </button>
+      </div>
+    </>
+  );
+};
 
 interface InputWithSuggestionsProps {
   searchQuery: string;
   setSearchQuery: React.Dispatch<React.SetStateAction<string>>;
+  setted: boolean;
+  setSetted: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-const InputWithSuggestions: React.FC<InputWithSuggestionsProps> = ({ searchQuery, setSearchQuery }) => {
-  const [from, setFrom] = React.useState<string>('');
-  const fromInputRef = useRef<HTMLInputElement>(null);
+const InputWithSuggestions: React.FC<InputWithSuggestionsProps> = ({ searchQuery, setSearchQuery, setted, setSetted }) => {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [debouncedQuery, setDebouncedQuery] = useState(searchQuery);
+  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState<boolean>(false);
 
+  // Debounce input to limit API calls
   useEffect(() => {
-    const timer = setTimeout(() => {
-      fromInputRef.current?.setAttribute('disabled', 'true');
-    }, 2000);
+    const timeoutId = setTimeout(() => {
+      setDebouncedQuery(searchQuery);
+    }, 500);
 
-    // Clear the timeout if the component unmounts or if searchQuery changes
-    return () => clearTimeout(timer);
-  }, [searchQuery]); // This will reset the timer every time searchQuery changes
+    return () => clearTimeout(timeoutId);
+  }, [searchQuery]);
 
-  const [result, setResult] = React.useState<WikiResult[]>([]);
-  const { data, isLoading, error } = useWikiSearch(searchQuery);
-
+  // Fetch suggestions
+  const {data, isLoading, error} = useWikiSearch(debouncedQuery);
   useEffect(() => {
-    setResult(data);
-  }, [data]);
+    if (!isLoading && !error) {
+      const suggestions = data.map((result) => result.title);
+      setSuggestions(suggestions);
+    }
+  }, [data, isLoading, error]);
 
-  console.log(data)
+  // Function to handle suggestion click
+  const handleSuggestionClick = (suggestion: string) => {
+    setSearchQuery(suggestion);
+    setShowSuggestions(false);
+    setSetted(true);
+  };
 
   return (
-    <div className='relative flex items-center justify-center text-black'> 
-      <input 
-        className='' 
-        value={searchQuery} 
+    <div className="relative w-full max-w-md mx-auto">
+      <input
+        ref={inputRef}
+        className={`w-full px-4 py-2 border-2 border-gray-300 text-black rounded-md focus:outline-none focus:border-blue-500 ${setted ? 'border-green-500' : 'border-red-700 border-lg'}`}
+        value={searchQuery}
         onChange={(e) => setSearchQuery(e.target.value)}
-        ref = {fromInputRef}
+        onFocus={() => setShowSuggestions(true)}
+        onBlur={() => setTimeout(() => setShowSuggestions(false), 100)}
       />
+      {showSuggestions && suggestions.length > 0 && (
+        <ul className="absolute z-10 w-full bg-white border border-gray-300 mt-1 max-h-40 overflow-auto rounded-md shadow-lg text-sky-900">
+          {suggestions.map((suggestion, index) => (
+            <li
+              key={index}
+              className="px-4 py-2 hover:bg-gray-100 border-gray-300 border cursor-pointer"
+              onClick={() => handleSuggestionClick(suggestion)}
+            >
+              {suggestion}
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
-}
+};
+
 
 const ResultGraph = ({ result }: {result: GraphResult}) => {
   const [isMediumWidth, setIsMediumWidth] = React.useState<boolean>(window.innerWidth > 768);
@@ -177,8 +244,8 @@ const ResultGraph = ({ result }: {result: GraphResult}) => {
   
             return (
               <>
-                <line x1 = {`${leftParent}%`} y1 = {`${topParent}%`} x2 = {midX} y2 = {midY} stroke='black' strokeWidth='2' markerEnd="url(#arrow)"></line>
-                <line x1={midX} y1={midY} x2={`${leftChild}%`} y2={`${topChild}%`} stroke="black" strokeWidth="2" />
+                <line key = {`${leftParent}-${midX}`} x1 = {`${leftParent}%`} y1 = {`${topParent}%`} x2 = {midX} y2 = {midY} stroke='black' strokeWidth='2' markerEnd="url(#arrow)"></line>
+                <line key = {`${midX}-${leftChild}`} x1={midX} y1={midY} x2={`${leftChild}%`} y2={`${topChild}%`} stroke="black" strokeWidth="2" />
 
               </>
             );
