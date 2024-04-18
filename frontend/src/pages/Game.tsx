@@ -97,6 +97,7 @@ const InputSection = () => {
     }
   }
 
+
   return (
     <>
       <h2 className='text-2xl md:text-4xl lg:text-6xl font-semibold text-center my-5'>Find the Shortest Path</h2>
@@ -132,6 +133,7 @@ const InputWithSuggestions: React.FC<InputWithSuggestionsProps> = ({ searchQuery
   const [debouncedQuery, setDebouncedQuery] = useState(searchQuery);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [showSuggestions, setShowSuggestions] = useState<boolean>(false);
+  const [isSuggestionClicked, setIsSuggestionClicked] = useState(false);  // New state to track suggestion clicks
 
   // Debounce input to limit API calls
   useEffect(() => {
@@ -151,8 +153,17 @@ const InputWithSuggestions: React.FC<InputWithSuggestionsProps> = ({ searchQuery
     }
   }, [data, isLoading, error]);
 
+  // Handle setting 'setted' when searchQuery changes
+  useEffect(() => {
+    if (!isSuggestionClicked) {
+      setSetted(false);
+    }
+    setIsSuggestionClicked(false);  // Reset after checking
+  }, [searchQuery]);
+
   // Function to handle suggestion click
   const handleSuggestionClick = (suggestion: string) => {
+    setIsSuggestionClicked(true);  // Indicate that the change was made via suggestion click
     setSearchQuery(suggestion);
     setShowSuggestions(false);
     setSetted(true);
@@ -162,18 +173,18 @@ const InputWithSuggestions: React.FC<InputWithSuggestionsProps> = ({ searchQuery
     <div className="relative w-full max-w-md mx-auto">
       <input
         ref={inputRef}
-        className={`w-full px-4 py-2 border-2 border-gray-300 text-black rounded-md focus:outline-none focus:border-blue-500 ${setted ? 'border-green-500' : 'border-red-700 border-lg'}`}
+        className={`w-full px-4 py-2 border-2 text-sky-700 ${setted ? 'border-green-500' : 'border-red-700'} rounded-md focus:outline-none focus:border-blue-500`}
         value={searchQuery}
         onChange={(e) => setSearchQuery(e.target.value)}
         onFocus={() => setShowSuggestions(true)}
         onBlur={() => setTimeout(() => setShowSuggestions(false), 100)}
       />
       {showSuggestions && suggestions.length > 0 && (
-        <ul className="absolute z-10 w-full bg-white border border-gray-300 mt-1 max-h-40 overflow-auto rounded-md shadow-lg text-sky-900">
+        <ul className="absolute z-10 w-full text-sky-700 bg-white border border-gray-300 mt-1 max-h-40 overflow-auto rounded-md shadow-lg">
           {suggestions.map((suggestion, index) => (
             <li
               key={index}
-              className="px-4 py-2 hover:bg-gray-100 border-gray-300 border cursor-pointer"
+              className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
               onClick={() => handleSuggestionClick(suggestion)}
             >
               {suggestion}
