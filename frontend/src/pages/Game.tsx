@@ -5,6 +5,7 @@ import {useWikiSearch } from '../api/WikiSearch'
 import { COLOR } from '../const'
 import MethodSwitch from '../components/Switch'
 import toast from 'react-hot-toast'
+import { ExpectedResponse, search} from '../api/search'
 
 type Node = {
   id: number,
@@ -15,10 +16,12 @@ type Node = {
 
 type Path = number[];
 
-type GraphResult = {
+export type GraphResult = {
   nodes: Node[],
   paths: Path[],
 }
+
+
 
 type Position = {
   row: number,
@@ -38,27 +41,86 @@ const result = {
   paths: [[0,1,3,5], [0,2,4,5],[0,1,3,5], [0,2,4,5], [0,1,3,5], [0,2,4,5], [0,1,3,5], [0,2,4,5], [0,1,3,5], [0,2,4,5],[0,1,3,5], [0,2,4,5], [0,1,3,5], [0,2,4,5], [0,1,3,5], [0,2,4,5], [0,1,3,5], [0,2,4,5],[0,1,3,5], [0,2,4,5], [0,1,3,5], [0,2,4,5], [0,1,3,5], [0,2,4,5]]
 }
 
-const Game = () => {
 
-  return (
-
-<main className='overflow-x-hidden mb-24'>
-  <BallBackground blur maximumBallSize={50} minimumBallSize={20} className='bg-gradient-to-b from-[#0B1F36]/15 from-60% to-sky-500 to-96%'>
-    <LandingAndInputSection />
-  </BallBackground>
-  <ResultSection />
-</main>
-  )
+type DrillingProps = {
+  setSource: React.Dispatch<React.SetStateAction<string>>,
+  setTarget: React.Dispatch<React.SetStateAction<string>>,
+  setUsingBFS: React.Dispatch<React.SetStateAction<boolean>>,
+  handleSubmit: () => void,
+  isLoading: boolean,
 }
 
-const LandingAndInputSection = () => {
+const Game = () => {
+  const [source, setSource] = useState<string>('');
+  const [target, setTarget] = useState<string>('');
+  const [usingBFS, setUsingBFS] = useState<boolean>(true);
+  const [data, setData] = useState<ExpectedResponse | null>(null); // State to hold the fetched data
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [error, setError] = useState<boolean>(false);
+
+  async function handleSubmit() {
+    if (!source || !target) return;
+
+    setIsLoading(true);
+    setError(false);
+    try {
+      toast.success("Path finding started. Please wait...")
+      const result = await search({source, target, using_bfs: usingBFS});
+      setData(result.data)
+      if (result.error) {
+        setError(true)
+      }
+    } catch (err) {
+      setError(true)
+      toast.error("Error occured.")
+    }
+    if (data && !data?.ok) {
+      console.log(data)
+      toast.error("Error occured.")
+    }
+    setIsLoading(false)
+  }
+
+  useEffect(() => {
+    handleSubmit();
+  }, [source, target, usingBFS]);
+
+
+
+  return (
+    <main className='overflow-x-hidden'>
+      <BallBackground blur maximumBallSize={50} minimumBallSize={20} className='bg-gradient-to-b from-[#0B1F36]/15 from-60% to-sky-500 to-96%'>
+        <LandingAndInputSection 
+          setSource={setSource}
+          setTarget={setTarget}
+          setUsingBFS={setUsingBFS}
+          handleSubmit={handleSubmit}
+          isLoading={isLoading}
+        />
+        {data?.ok ?
+        <div className='text-white md:text-4xl text-xl flex items-center justify-center text-center'>
+          <span>Found {data.data?.paths.length} paths with {data.degreesOfSeparation} degrees of separation from {source} to {target} in {data.time} seconds!</span>
+        </div> : null }
+      </BallBackground>
+      {data?.ok ? <ResultSection/> : null}
+    </main>
+  );
+}
+
+const LandingAndInputSection = ( {setSource, setTarget, setUsingBFS, handleSubmit, isLoading}: DrillingProps  
+) => {
   return (
     <>
     <div>
-        <NavigationContainer/>
+      <NavigationContainer/>
     </div>
     <section className='flex flex-col w-full flex items-center gap-8 justify-center max-md:my-8 md:my-12 text-center text-white'>
-      <InputSection/>
+      <InputSection setSource = {setSource}
+      setTarget = {setTarget}
+      setUsingBFS = {setUsingBFS}
+      handleSubmit={handleSubmit}
+      isLoading={isLoading}
+      />
     </section>
     </>
   );
@@ -80,7 +142,10 @@ const ResultSection = () => {
   );
 }
 
-const InputSection = () => {
+
+const InputSection = (
+  {setSource, setTarget, setUsingBFS, handleSubmit, isLoading}: DrillingProps
+) => {
   const [from, setFrom] = React.useState<string>('');
   const [to, setTo] = React.useState<string>('');
   const [BFSMethod, setBFSMethod] = React.useState<boolean>(true);
@@ -92,13 +157,28 @@ const InputSection = () => {
     setBFSMethod(event.target.checked);
   }
 
-  function handleSubmit() {
-    if (!settedFrom || !settedTo) {
+  function handleSearch(force: boolean) {
+
+    if ((!settedFrom || !settedTo) && !force) {
       toast.error("Use the suggestions to set the 'From' and 'To' fields.")
       return;
     }
+
+    setSource(from);
+    setTarget(to);
+    setUsingBFS(BFSMethod);
   }
 
+  if (isLoading) {
+    return (
+      <div className='text-4xl text-white font-semibold'> This may takes a while...
+      <br/>
+      <span className='font-normal'>
+        Enjoy our animation!  
+      </span>
+      </div>
+    )
+  }
 
   return (
     <>
@@ -115,9 +195,14 @@ const InputSection = () => {
             <InputWithSuggestions searchQuery={to} setSearchQuery={setTo} setted={settedTo} setSetted={setSettedTo} />
           </div>
         </div>
-        <button className='bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition-colors duration-200 ease-in-out' onClick={() => handleSubmit()}>
+        <div className='flex gap-4'>
+        <button className='bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition-colors duration-200 ease-in-out' onClick={() => handleSearch(false)}>
           Find Path
         </button>
+        <button className='bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded transition-colors duration-200 ease-in-out' onClick={() => handleSearch(true)}>
+          Force Find!
+        </button>
+        </div>
       </div>
     </>
   );
@@ -228,8 +313,6 @@ const ResultGraph = ({ result }: {result: GraphResult}) => {
     rowCounter[col]++;
   }
 
-  console.log(positions);
-
   const gap = 100 / (numLevels + 1);
 
   const offset = isMediumWidth ? 16 : 8;
@@ -323,13 +406,18 @@ const NodeComponent = ({ node, className, style, isMediumWidth }: {node: Node, c
 }
 
 const IndividualResult = ({ result, index }: { result: GraphResult, index: number }) => {
+  function handleNodeClick(node: number) {
+    window.open(result.nodes[node].url, '_blank');
+  } 
+
+
   return (
     <div className='rounded-lg overflow-hidden shadow-lg my-4 bg-white'>
       <div className='bg-sky-700 p-2'>
         <h3 className='text-sm lg:text-lg text-white'>Result {index + 1}</h3>
       </div>
       {result.paths[index].map((nodeId, i) => (
-        <div className='flex items-center p-2 border-b last:border-b-0' key={i}>
+        <div className='flex items-center p-2 border-b last:border-b-0 cursor-pointer' key={i} onClick={() => handleNodeClick(nodeId)}>
           <div className='w-2 h-6 mr-2 rounded' style={{
             backgroundColor: COLOR[result.nodes[nodeId].level % 8],
           }}></div>
@@ -343,9 +431,9 @@ const IndividualResult = ({ result, index }: { result: GraphResult, index: numbe
 const IndividualResultsSection = () => {
   return (
     <section className='md:py-20 flex flex-col items-center justify-center w-9/10'>
-      <h2 className='md:text-4xl font-semibold text-white'>Individual Results</h2>
-      <div className='h-screen overflow-y-scroll w-9/10'>
-        <div className='grid grid-cols-4 gap-x-4'>
+      <h2 className='md:text-4xl font-semibold text-white mb-12'>Individual Results</h2>
+      <div className='h-[70vh] overflow-y-scroll'>
+        <div className='grid grid-cols-2 md:grid-cols-4 gap-x-4'>
         {
           result.paths.map((path, i) => {
             return <IndividualResult result={result} index={i}/>
