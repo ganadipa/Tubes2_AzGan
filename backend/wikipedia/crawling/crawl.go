@@ -3,10 +3,10 @@ package crawling
 import (
 	"fmt"
 	"log"
-	"github.com/PuerkitoBio/goquery"
 	"net/http"
-	// "math/rand"
 	// "time"
+
+	"github.com/PuerkitoBio/goquery"
 )
 
 type CrawlResult struct {
@@ -15,12 +15,20 @@ type CrawlResult struct {
 }
 
 func Crawl(name string) CrawlResult {
-	url := fmt.Sprintf("https://wikipedia.org/wiki/%s", name)
+	url := fmt.Sprintf("https://en.wikipedia.org/wiki/%s", name)
 
 	// Make an HTTP GET request to the URL
 	response, err := http.Get(url)
 	if err != nil {
 		log.Fatal("Error fetching URL:", err)
+	}
+
+	for response.StatusCode == 429 {				
+		// fmt.Printf("Too many requests. %s\n", name)
+		response, err = http.Get(url)
+		if err != nil {
+			log.Fatal("Error fetching URL:", err)
+		}
 	}
 	defer response.Body.Close()
 
