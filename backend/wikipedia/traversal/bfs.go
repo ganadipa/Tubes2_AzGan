@@ -60,7 +60,7 @@ func BFS(source, destination string) (int, map[string]string, []string) {
 					break
 				}
 				queue.Enqueue(neighbour)
-				tree[neighbour] = curr
+				tree[neighbour] = curr //neighbour  = child, curr = parent
 				distances[neighbour] = curr_dist + 1
 				go func() {
 					defer func() { request_sem.Release() }()
