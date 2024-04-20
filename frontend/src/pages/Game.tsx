@@ -252,9 +252,14 @@ const InputWithSuggestions: React.FC<InputWithSuggestionsProps> = ({ searchQuery
   const handleSuggestionClick = (suggestion: string) => {
     setIsSuggestionClicked(true);  // Indicate that the change was made via suggestion click
     setSearchQuery(suggestion);
-    setShowSuggestions(false);
     setSetted(true);
   };
+
+  useEffect(() => {
+    if (isSuggestionClicked) {
+      setShowSuggestions(false);
+    }
+  }, [isSuggestionClicked]);
 
   return (
     <div className="relative w-full max-w-md mx-auto">
