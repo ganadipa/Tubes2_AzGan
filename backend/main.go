@@ -8,8 +8,8 @@ import (
 
 func main() {
 	// https://www.sixdegreesofwikipedia.com/?source=Blog&target=Github
-	source := "Blog"
-	destination := "GitHub"
+	source := "Iowa"
+	destination := "Guitar"
 	closest_distance, tree, solutions := traversal.BFS(source, destination)
 
 	printSolution(source, destination, closest_distance, tree, solutions)
