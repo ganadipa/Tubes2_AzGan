@@ -172,13 +172,13 @@ func handlePostRequest(w http.ResponseWriter, r *http.Request) {
 		})
 	}
 
-	for _, node := range nodeResult {
-		fmt.Printf("id %d: label:%s url:%s level:%d \n", node.ID, node.Label, node.URL, node.Level)
-	}
+	// for _, node := range nodeResult {
+	// 	fmt.Printf("id %d: label:%s url:%s level:%d \n", node.ID, node.Label, node.URL, node.Level)
+	// }
 
-	for _, path := range paths {
-		fmt.Printf("%v\n", path)
-	}
+	// for _, path := range paths {
+	// 	fmt.Printf("%v\n", path)
+	// }
 
 	var result GraphResult
 	result = GraphResult{
