@@ -54,6 +54,7 @@ func BFS(source, destination string) (int, map[string]string, []string) {
 					continue
 				}
 				if neighbour == destination {
+					fmt.Printf("Found solution %s\n", curr)
 					found = true
 					closest_distance = curr_dist + 1
 					solutions = append(solutions, curr)
