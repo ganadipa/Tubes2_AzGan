@@ -1,9 +1,10 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { ChangeEvent, useEffect, useRef, useState } from 'react'
 import { NavigationContainer } from './Main'
 import BallBackground from '../components/BallBackground'
 import {useWikiSearch } from '../api/WikiSearch'
 import { COLOR } from '../const'
-import MethodSwitch from '../components/Switch'
+import {MethodSwitch, FindPathSwitch} from '../components/Switch'
+
 import toast from 'react-hot-toast'
 import { ExpectedResponse, search} from '../api/search'
 
@@ -28,24 +29,11 @@ type Position = {
   col: number,
 }
 
-const result = {
-  nodes: [
-    {id: 0, label: 'Azmi Mahmud Bazeid Kapten Azmi', url: 'https://en.wikipedia.org/wiki/A', level: 0},
-    {id: 1, label: 'B', url: 'https://en.wikipedia.org/wiki/B', level: 1},
-    {id: 2, label: 'C', url: 'https://en.wikipedia.org/wiki/C', level: 1},
-    {id: 3, label: 'D', url: 'https://en.wikipedia.org/wiki/D', level: 2},
-    {id: 4, label: 'E', url: 'https://en.wikipedia.org/wiki/E', level: 2},
-    {id: 5, label: 'F', url: 'https://en.wikipedia.org/wiki/F', level: 3},
-  ],
-
-  paths: [[0,1,3,5], [0,2,4,5],[0,1,3,5], [0,2,4,5], [0,1,3,5], [0,2,4,5], [0,1,3,5], [0,2,4,5], [0,1,3,5], [0,2,4,5],[0,1,3,5], [0,2,4,5], [0,1,3,5], [0,2,4,5], [0,1,3,5], [0,2,4,5], [0,1,3,5], [0,2,4,5],[0,1,3,5], [0,2,4,5], [0,1,3,5], [0,2,4,5], [0,1,3,5], [0,2,4,5]]
-}
-
-
 type DrillingProps = {
   setSource: React.Dispatch<React.SetStateAction<string>>,
   setTarget: React.Dispatch<React.SetStateAction<string>>,
   setUsingBFS: React.Dispatch<React.SetStateAction<boolean>>,
+  setAllPaths: React.Dispatch<React.SetStateAction<boolean>>,
   handleSubmit: () => void,
   isLoading: boolean,
 }
@@ -54,6 +42,7 @@ const Game = () => {
   const [source, setSource] = useState<string>('');
   const [target, setTarget] = useState<string>('');
   const [usingBFS, setUsingBFS] = useState<boolean>(true);
+  const [allPaths, setAllPaths] = useState<boolean>(true);
   const [data, setData] = useState<ExpectedResponse | null>(null); // State to hold the fetched data
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<boolean>(false);
@@ -65,7 +54,7 @@ const Game = () => {
     setError(false);
     try {
       toast.success("Path finding started. Please wait...")
-      const result = await search({source, target, using_bfs: usingBFS});
+      const result = await search({source, target, using_bfs: usingBFS, all_paths: allPaths});
       setData(result.data)
       if (result.error) {
         setError(true)
@@ -81,11 +70,6 @@ const Game = () => {
     setIsLoading(false)
   }
 
-  useEffect(() => {
-    handleSubmit();
-  }, [source, target, usingBFS]);
-
-
 
   return (
     <main className='overflow-x-hidden'>
@@ -94,20 +78,21 @@ const Game = () => {
           setSource={setSource}
           setTarget={setTarget}
           setUsingBFS={setUsingBFS}
+          setAllPaths={setAllPaths}
           handleSubmit={handleSubmit}
           isLoading={isLoading}
         />
-        {data?.ok ?
+        {data?.ok && !isLoading ?
         <div className='text-white md:text-4xl text-xl flex items-center justify-center text-center'>
           <span>Found {data.data?.paths.length} paths with {data.degreesOfSeparation} degrees of separation from {source} to {target} in {data.time} seconds!</span>
         </div> : null }
       </BallBackground>
-      {data?.ok ? <ResultSection/> : null}
+      {data?.ok ? <ResultSection result = {data.data as GraphResult}/> : null}
     </main>
   );
 }
 
-const LandingAndInputSection = ( {setSource, setTarget, setUsingBFS, handleSubmit, isLoading}: DrillingProps  
+const LandingAndInputSection = ( {setSource, setTarget, setUsingBFS, handleSubmit, isLoading, setAllPaths}: DrillingProps  
 ) => {
   return (
     <>
@@ -116,6 +101,7 @@ const LandingAndInputSection = ( {setSource, setTarget, setUsingBFS, handleSubmi
     </div>
     <section className='flex flex-col w-full flex items-center gap-8 justify-center max-md:my-8 md:my-12 text-center text-white'>
       <InputSection setSource = {setSource}
+      setAllPaths={setAllPaths}
       setTarget = {setTarget}
       setUsingBFS = {setUsingBFS}
       handleSubmit={handleSubmit}
@@ -127,7 +113,7 @@ const LandingAndInputSection = ( {setSource, setTarget, setUsingBFS, handleSubmi
 };
 
 
-const ResultSection = () => {
+const ResultSection = ({result}: {result: GraphResult}) => {
 
   return (
     <>
@@ -136,7 +122,7 @@ const ResultSection = () => {
     <ResultGraph result={result}/>
   </section>
   <BallBackground blur maximumBallSize={50} minimumBallSize={20} className='bg-gradient-to-t from-[#0B1F36]/15 from-80% to-sky-500 to-9%'>
-    <IndividualResultsSection/>
+    <IndividualResultsSection result={result}/>
   </BallBackground>
   </>
   );
@@ -144,17 +130,23 @@ const ResultSection = () => {
 
 
 const InputSection = (
-  {setSource, setTarget, setUsingBFS, handleSubmit, isLoading}: DrillingProps
+  {setSource, setTarget, setUsingBFS, handleSubmit, isLoading, setAllPaths: setFindAllPath}: DrillingProps
 ) => {
-  const [from, setFrom] = React.useState<string>('');
-  const [to, setTo] = React.useState<string>('');
-  const [BFSMethod, setBFSMethod] = React.useState<boolean>(true);
+  const [from, setFrom] = useState<string>('');
+  const [to, setTo] = useState<string>('');
+  const [BFSMethod, setBFSMethod] = useState<boolean>(true);
+  const [AllPaths, setAllPaths] = useState<boolean>(true);
 
-  const [settedFrom, setSettedFrom] = React.useState<boolean>(false);
-  const [settedTo, setSettedTo] = React.useState<boolean>(false);
+  const [settedFrom, setSettedFrom] = useState<boolean>(false);
+  const [settedTo, setSettedTo] = useState<boolean>(false);
+  const [submitCounter, setSubmitCounter] = useState<number>(0);
 
-  function handleSwitchChange(event: React.ChangeEvent<HTMLInputElement>) {
+  function handleSwitchChange(event: ChangeEvent<HTMLInputElement>) {
     setBFSMethod(event.target.checked);
+  }
+
+  function hanldePathSwitchChange(event: ChangeEvent<HTMLInputElement>) {
+    setAllPaths(event.target.checked);
   }
 
   function handleSearch(force: boolean) {
@@ -167,7 +159,15 @@ const InputSection = (
     setSource(from);
     setTarget(to);
     setUsingBFS(BFSMethod);
+    setFindAllPath(AllPaths);
+    setSubmitCounter(submitCounter + 1);
   }
+
+  useEffect(() => {
+    if (submitCounter > 0) {
+      handleSubmit();
+    }
+  }, [submitCounter]);
 
   if (isLoading) {
     return (
@@ -184,7 +184,10 @@ const InputSection = (
     <>
       <h2 className='text-2xl md:text-4xl lg:text-6xl font-semibold text-center my-5'>Find the Shortest Path</h2>
       <div className='flex flex-col items-center'>
+        <div className='flex gap-8'>
         <MethodSwitch BFSMethod={BFSMethod} handleChange={handleSwitchChange} />
+        <FindPathSwitch AllPaths={AllPaths} handleChange={hanldePathSwitchChange} />
+        </div>
         <div className='flex flex-col md:flex-row gap-8 items-center my-4'>
           <div>
             <span className='text-xl md:text-3xl lg:text-4xl'>From</span>
@@ -208,58 +211,59 @@ const InputSection = (
   );
 };
 
+
+
 interface InputWithSuggestionsProps {
   searchQuery: string;
-  setSearchQuery: React.Dispatch<React.SetStateAction<string>>;
+  setSearchQuery: (query: string) => void;
   setted: boolean;
-  setSetted: React.Dispatch<React.SetStateAction<boolean>>;
+  setSetted: (setted: boolean) => void;
 }
 
-const InputWithSuggestions: React.FC<InputWithSuggestionsProps> = ({ searchQuery, setSearchQuery, setted, setSetted }) => {
+const InputWithSuggestions: React.FC<InputWithSuggestionsProps> = ({
+  searchQuery, setSearchQuery, setted, setSetted
+}) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const [debouncedQuery, setDebouncedQuery] = useState(searchQuery);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [showSuggestions, setShowSuggestions] = useState<boolean>(false);
-  const [isSuggestionClicked, setIsSuggestionClicked] = useState(false);  // New state to track suggestion clicks
+  const [isSuggestionClicked, setIsSuggestionClicked] = useState(false);
 
-  // Debounce input to limit API calls
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       setDebouncedQuery(searchQuery);
     }, 500);
-
     return () => clearTimeout(timeoutId);
   }, [searchQuery]);
 
-  // Fetch suggestions
   const {data, isLoading, error} = useWikiSearch(debouncedQuery);
+
   useEffect(() => {
-    if (!isLoading && !error) {
-      const suggestions = data.map((result) => result.title);
-      setSuggestions(suggestions);
+    if (!isLoading && !error && data) {
+      setSuggestions(data.map(result => result.title));
     }
   }, [data, isLoading, error]);
 
-  // Handle setting 'setted' when searchQuery changes
   useEffect(() => {
     if (!isSuggestionClicked) {
       setSetted(false);
     }
-    setIsSuggestionClicked(false);  // Reset after checking
+    setIsSuggestionClicked(false);
   }, [searchQuery]);
-
-  // Function to handle suggestion click
-  const handleSuggestionClick = (suggestion: string) => {
-    setIsSuggestionClicked(true);  // Indicate that the change was made via suggestion click
-    setSearchQuery(suggestion);
-    setSetted(true);
-  };
 
   useEffect(() => {
     if (isSuggestionClicked) {
       setShowSuggestions(false);
+      inputRef.current?.blur();
     }
   }, [isSuggestionClicked]);
+
+  const handleSuggestionClick = (suggestion: string) => {
+    setIsSuggestionClicked(true);
+    setSearchQuery(suggestion);
+    setSetted(true);
+    setShowSuggestions(false);
+  };
 
   return (
     <div className="relative w-full max-w-md mx-auto">
@@ -269,7 +273,9 @@ const InputWithSuggestions: React.FC<InputWithSuggestionsProps> = ({ searchQuery
         value={searchQuery}
         onChange={(e) => setSearchQuery(e.target.value)}
         onFocus={() => setShowSuggestions(true)}
-        onBlur={() => setTimeout(() => setShowSuggestions(false), 100)}
+        onBlur={() => setTimeout(() => {
+          if (!isSuggestionClicked) setShowSuggestions(false);
+        }, 100)}
       />
       {showSuggestions && suggestions.length > 0 && (
         <ul className="absolute z-10 w-full text-sky-700 bg-white border border-gray-300 mt-1 max-h-40 overflow-auto rounded-md shadow-lg">
@@ -277,6 +283,7 @@ const InputWithSuggestions: React.FC<InputWithSuggestionsProps> = ({ searchQuery
             <li
               key={index}
               className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+              onMouseDown={(e) => e.preventDefault()} // Prevent onBlur from firing when the suggestion is clicked
               onClick={() => handleSuggestionClick(suggestion)}
             >
               {suggestion}
@@ -309,18 +316,52 @@ const ResultGraph = ({ result }: {result: GraphResult}) => {
   }
 
   let positions: Position[] = Array.from({length: result.nodes.length}, () => ({row: 0, col: 0}));
-  let rowCounter: number[] = Array.from({length: numLevels}, () => 0);
-  for (let i = 0; i < result.nodes.length; i++) {
-    let col = result.nodes[i].level
-    let row = rowCounter[col];
-    positions[i] = {row, col};
+  // let rowCounter: number[] = Array.from({length: numLevels}, () => 0);
+  // for (let i = 0; i < result.nodes.length; i++) {
+  //   let col = result.nodes[i].level
+  //   let row = rowCounter[col];
+  //   positions[i] = {row, col};
 
-    rowCounter[col]++;
+  //   rowCounter[col]++;
+  // }
+
+  let NodesIdOnEachLevel = Array.from({length: numLevels}, () => Array<number>());
+  for (let i = 0; i < result.nodes.length; i++) {
+    NodesIdOnEachLevel[result.nodes[i].level].push(i);
   }
 
-  const gap = 100 / (numLevels + 1);
+  let rowCounter = 0, colCounter = 0;
+  for (let i = 0; i < numLevels; i++) {
+    for (let j = 0; j < NodesIdOnEachLevel[i].length; j++) {
+      if (i === 0 && j === 0) {
+        positions[NodesIdOnEachLevel[i][j]] = {row: 0, col: 0};
+      } else {
+        if (j === 0) {
+          rowCounter = 0;
+          colCounter++;
+        } else if (rowCounter < 15) {
+          rowCounter++;
+        } else {
+          rowCounter = 0;
+          colCounter++;
+        }
 
-  const offset = isMediumWidth ? 16 : 8;
+        positions[NodesIdOnEachLevel[i][j]] = {row: rowCounter, col: colCounter};
+      }
+    }
+  }
+
+  console.log(NodesIdOnEachLevel )
+  console.log(positions)
+
+  const horizontalGap = 100 / (colCounter + 2);
+
+  const offset = isMediumWidth ? 8 : 4;
+
+  let MaxRowOnEachCol = Array.from({length: colCounter + 1}, () => 0);
+  for (let i = 0; i < result.nodes.length; i++) {
+    MaxRowOnEachCol[positions[i].col] = Math.max(MaxRowOnEachCol[positions[i].col], positions[i].row + 1);
+  }
 
 
   return (
@@ -341,11 +382,14 @@ const ResultGraph = ({ result }: {result: GraphResult}) => {
             const from = positions[path[j-1]];
             const to = positions[path[j]];
 
-            const fromLeft = gap*(from.col + 1);
-            const fromTop = (100/(rowCounter[result.nodes[path[j-1]].level] + 1))*(from.row + 1);
+            const fromVerticalGap = 100/ (MaxRowOnEachCol[from.col] + 1);
+            const toVerticalGap = 100/ (MaxRowOnEachCol[to.col] + 1);
 
-            const toLeft = gap*(to.col + 1);
-            const toTop = (100/(rowCounter[result.nodes[path[j]].level] + 1))*(to.row + 1);
+            const fromLeft = horizontalGap*(from.col + 1);
+            const fromTop = (fromVerticalGap)*(from.row + 1);
+
+            const toLeft = horizontalGap*(to.col + 1);
+            const toTop = (toVerticalGap)*(to.row + 1);
 
             const midX = (fromLeft + toLeft) / 2;
             const midY = (fromTop + toTop) / 2;
@@ -362,8 +406,8 @@ const ResultGraph = ({ result }: {result: GraphResult}) => {
             return (
               <>
 
-                <line key = {`${fromLeft}-${midX}`} x1 = {responsiveFromLeft} y1 = {responsiveFromTop} x2 = {responsiveMidX} y2 = {responsiveMidY} stroke='black' strokeWidth='2' markerEnd="url(#arrow)"></line>
-                <line key = {`${midX}-${toLeft}`} x1={responsiveMidX} y1={responsiveMidY} x2={responsiveToLeft} y2={responsiveToTop} stroke="black" strokeWidth="2" />
+                <line key = {`${fromLeft}-${midX}`} x1 = {responsiveFromLeft} y1 = {responsiveFromTop} x2 = {responsiveMidX} y2 = {responsiveMidY} stroke='black' strokeWidth='1' markerEnd="url(#arrow)"></line>
+                <line key = {`${midX}-${toLeft}`} x1={responsiveMidX} y1={responsiveMidY} x2={responsiveToLeft} y2={responsiveToTop} stroke="black" strokeWidth="1" />
 
               </>
             );
@@ -375,9 +419,11 @@ const ResultGraph = ({ result }: {result: GraphResult}) => {
       {/* Draw nodes*/}
       {
         Array.from({length: result.nodes.length}).map((_, i) => {
+          const verticalGap = 100 / (MaxRowOnEachCol[positions[i].col] + 1);
+
           const node = result.nodes[i];
-          const left = `${gap*(positions[i].col + 1)}%`;
-          const top = `${(100/(rowCounter[node.level] + 1))*(positions[i].row + 1)}%`;
+          const left = `${horizontalGap*(positions[i].col + 1)}%`;
+          const top = `${verticalGap*(positions[i].row + 1)}%`;
 
           const responsiveLeft = isMediumWidth ? left: top;
           const responsiveTop = isMediumWidth ? top: left;
@@ -399,8 +445,8 @@ const NodeComponent = ({ node, className, style, isMediumWidth }: {node: Node, c
     <div className={`${className} absolute`} style={style}>
       <div className="relative cursor-pointer rounded-full" style={{
         backgroundColor: COLOR[node.level % 8],
-        width: isMediumWidth ? '32px': '16px',
-        height: isMediumWidth ? '32px': '16px',
+        width: isMediumWidth ? '16px': '8px',
+        height: isMediumWidth ? '16px': '8px',
       }}
       onClick={handleNodeClick}
       >
@@ -433,7 +479,7 @@ const IndividualResult = ({ result, index }: { result: GraphResult, index: numbe
   );
 }
 
-const IndividualResultsSection = () => {
+const IndividualResultsSection = ({result}: {result: GraphResult}) => {
   return (
     <section className='md:py-20 flex flex-col items-center justify-center w-9/10'>
       <h2 className='md:text-4xl font-semibold text-white mb-12'>Individual Results</h2>

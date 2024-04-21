@@ -33,12 +33,27 @@ type MethodSwitchProps = {
     handleChange: (event: React.ChangeEvent<HTMLInputElement>) => void,
     }
 
-export default function MethodSwitch({BFSMethod, handleChange}: MethodSwitchProps) {
+export function MethodSwitch({BFSMethod, handleChange}: MethodSwitchProps) {
   return (
     <div className='flex flex-row items-center'>
     <span>IDS</span>
       <OrangeSwitch {...label} checked = {BFSMethod} onChange={handleChange} />
       <span>BFS</span>
+    </div>
+  );
+}
+
+type FindPathSwitchProps = {
+  AllPaths: boolean,
+  handleChange: (event: React.ChangeEvent<HTMLInputElement>) => void,
+  }
+
+export function FindPathSwitch({AllPaths, handleChange}: FindPathSwitchProps) {
+  return (
+    <div className='flex flex-row items-center'>
+    <span>One path</span>
+      <OrangeSwitch {...label} checked = {AllPaths} onChange={handleChange} />
+      <span>All path</span>
     </div>
   );
 }

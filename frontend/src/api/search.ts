@@ -5,6 +5,7 @@ export type SearchPayload = {
   source: string;
   target: string;
   using_bfs: boolean;
+  all_paths: boolean;
 };
 
 export type ExpectedResponse = {
