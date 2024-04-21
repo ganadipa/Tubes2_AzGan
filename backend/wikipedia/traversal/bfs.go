@@ -63,14 +63,15 @@ func BFS(source, destination string) (int, map[string]string, []string) {
 				queue.Enqueue(neighbour)
 				tree[neighbour] = curr //neighbour  = child, curr = parent
 				distances[neighbour] = curr_dist + 1
-				go func() {
+				go func(neighbour string) {
 					defer func() { request_sem.Release() }()
 					request_sem.Acquire()
 					result := crawling.Crawl(neighbour)
 					ch <- result
-				}()
+				}(neighbour)
 			}
 		}
 	}
+	fmt.Printf("Total nodes: %d\n", len(data))
 	return closest_distance, tree, solutions
 }
