@@ -6,7 +6,6 @@ import (
 	"log"
 	"net/http"
 	"slices"
-	"sort"
 	"strings"
 	"time"
 	"wikirace/wikipedia/traversal"
@@ -20,7 +19,6 @@ type SearchPayload struct {
 	Source   string `json:"source"`
 	Target   string `json:"target"`
 	UsingBFS *bool  `json:"using_bfs"`
-	AllPaths *bool  `json:"all_paths"`
 }
 
 // ExpectedResponse defines the structure for the outgoing JSON data
@@ -77,13 +75,10 @@ func handlePostRequest(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Validate that required fields are not empty
-	if payload.Source == "" || payload.Target == "" || payload.UsingBFS == nil || payload.AllPaths == nil {
+	if payload.Source == "" || payload.Target == "" || payload.UsingBFS == nil {
 		respondWithJSON(w, http.StatusOK, ExpectedResponse{OK: false})
 		return
 	}
-
-	// print the payload
-	fmt.Println("Request Body:", payload)
 
 	// /*
 	// @ganadipa: Below is the dummy data that connects to the front end,
@@ -171,7 +166,7 @@ func handlePostRequest(w http.ResponseWriter, r *http.Request) {
 	for path, i := range id {
 		nodeResult = append(nodeResult, Node{
 			ID:    i,
-			Label: path,
+			Label: strings.ReplaceAll(path, "_", " "),
 			URL:   url[i],
 			Level: depths[path],
 		})
@@ -191,15 +186,10 @@ func handlePostRequest(w http.ResponseWriter, r *http.Request) {
 		Paths: paths,
 	}
 
-	// Sort the result nodes based on the ID
-	sort.Slice(result.Nodes, func(i, j int) bool {
-		return result.Nodes[i].ID < result.Nodes[j].ID
-	})
-
 	response := ExpectedResponse{
 		Data:                &result,
 		Time:                int64(time.Since(startTime) / time.Millisecond),
-		DegreesOfSeparation: len(result.Paths[0]),
+		DegreesOfSeparation: 5, // Example value
 		OK:                  true,
 	}
 
