@@ -169,7 +169,7 @@ func handlePostRequest(w http.ResponseWriter, r *http.Request) {
 		nodeResult = append(nodeResult, Node{
 			ID:    i,
 			Label: strings.ReplaceAll(path, "_", " "),
-			URL:   url[i],
+			URL:   "https://en.wikipedia.org/wiki/" + strings.ReplaceAll(path, "_", "_"),
 			Level: depths[path],
 		})
 	}
