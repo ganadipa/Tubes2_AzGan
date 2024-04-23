@@ -26,13 +26,12 @@ export async function search(payload: SearchPayload): Promise<{data: ExpectedRes
     return Promise.resolve({data: {data: null, time: 0, degreesOfSeparation: 0, ok: false}, error: true});
   }
 
-  const endpoint = 'http://localhost:8000';
+  const endpoint = `http://localhost:8000/get?source=${payload.source}&target=${payload.target}&using_bfs=${payload.using_bfs}&all_paths=${payload.all_paths}`;
   const requestOptions = {
-    method: 'POST',
+    method: 'GET',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify(payload)
   };
 
   // Introducing a delay to simulate network latency

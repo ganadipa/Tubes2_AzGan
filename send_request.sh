@@ -1,3 +1,1 @@
-curl -X POST http://localhost:8000/ \
-     -H "Content-Type: application/json" \
-     -d '{"source": "Chicken", "target": "Duck", "using_bfs": true, "all_paths": false}'
+curl -G -d "source=Chicken&target=Duck&using_bfs=true&all_paths=false" http://localhost:8000/get/
