@@ -2,11 +2,12 @@ package traversal
 
 import (
 	"fmt"
+	"time"
 	"wikirace/semaphore"
 	"wikirace/wikipedia/crawling"
 )
 
-const maxWorkers int = 200
+const maxWorkers int = 500
 
 // Returns
 // - Closest distance between source and destination
@@ -18,7 +19,7 @@ func BFS(source, destination string) (int, map[string]string, []string) {
 	var solutions []string
 	var data = make(map[string][]string)
 	var request_sem = semaphore.NewSemaphore(maxWorkers)
-	ch := make(chan crawling.CrawlResult)
+	ch := make(chan crawling.CrawlResult, 120000)
 
 	queue := Queue{}
 	queue.Enqueue(source)
@@ -30,10 +31,17 @@ func BFS(source, destination string) (int, map[string]string, []string) {
 		ch <- result
 	}()
 
-	found, closest_distance := false, 0
+	currentDepth, found, closest_distance := 0, false, 0
+
+	go func() {
+		for {
+			fmt.Printf("Data: %d\n", len(data))
+			time.Sleep(time.Second)
+		}
+	}()
 
 	for !found {
-		fmt.Printf("Starting new depth...\n")
+		fmt.Printf("Searching depth %d...\n", currentDepth)
 		size := queue.len()
 
 		for range size {
@@ -71,7 +79,8 @@ func BFS(source, destination string) (int, map[string]string, []string) {
 				}(neighbour)
 			}
 		}
+		currentDepth++
 	}
-	fmt.Printf("Total nodes: %d\n", len(data))
+	fmt.Printf("Total nodes: %d & %d\n", len(data), len(distances))
 	return closest_distance, tree, solutions
 }

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strings"
 	// "time"
 
 	"github.com/PuerkitoBio/goquery"
@@ -15,17 +16,18 @@ type CrawlResult struct {
 }
 
 func Crawl(name string) CrawlResult {
-	url := fmt.Sprintf("https://en.wikipedia.org/wiki/%s", name)
+	name = strings.Replace(name, "%", "%25", -1)
+	wiki_url := fmt.Sprintf("https://en.wikipedia.org/wiki/%s", name)
 
 	// Make an HTTP GET request to the URL
-	response, err := http.Get(url)
+	response, err := http.Get(wiki_url)
 	if err != nil {
 		log.Fatal("Error fetching URL:", err)
 	}
 
 	for response.StatusCode == 429 {				
 		// fmt.Printf("Too many requests. %s\n", name)
-		response, err = http.Get(url)
+		response, err = http.Get(wiki_url)
 		if err != nil {
 			log.Fatal("Error fetching URL:", err)
 		}
@@ -41,7 +43,7 @@ func Crawl(name string) CrawlResult {
 	var result_set = make(map[string]bool)
 
 	// Find the <div> with id "bodyContent" and loop through its <a> tags
-	doc.Find("#bodyContent a").Each(func(i int, s *goquery.Selection) {
+	doc.Find("a").Each(func(i int, s *goquery.Selection) {
 		// Get the href attribute of the <a> tag
 		link, exists := s.Attr("href")
 		if exists && len(link) >= 6 && link[:6] == "/wiki/" {

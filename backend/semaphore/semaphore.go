@@ -1,31 +1,33 @@
 package semaphore
 
-import (
-	"sync"
-)
+// import (
+// 	"fmt"
+// 	"sync"
+// )
 
 
-type semaphore struct {
+type Semaphore struct {
     sem chan struct{}
-    wg  sync.WaitGroup
+    // wg  sync.WaitGroup
 }
 
-func NewSemaphore(maxWorkers int) *semaphore {
-    return &semaphore{
+func NewSemaphore(maxWorkers int) *Semaphore {
+    return &Semaphore{
         sem: make(chan struct{}, maxWorkers),
     }
 }
 
-func (s *semaphore) Acquire() {
+func (s *Semaphore) Acquire() {
     s.sem <- struct{}{}
-    s.wg.Add(1)
+    // s.wg.Add(1)
 }
 
-func (s *semaphore) Release() {
+func (s *Semaphore) Release() {
     <-s.sem
-    s.wg.Done()
+    // s.wg.Done()
 }
 
-func (s *semaphore) Wait() {
-    s.wg.Wait()
-}
+// func (s *Semaphore) Wait() {
+//     fmt.Printf("The waiting length is %d\n", len(s.sem))
+//     // s.wg.Wait()
+// }
