@@ -43,7 +43,7 @@ func HandlePostRequest(w http.ResponseWriter, r *http.Request) {
 	depths[payload.Source] = 0
 	count++
 
-	// Initialize id for destination
+	// Initialize id for request.Target
 	id[payload.Target] = count
 	depths[payload.Target] = closest_distance
 	count++
@@ -168,7 +168,7 @@ func getResponseBFS(request GetRequestParams) ExpectedResponse {
 	depths[request.Source] = 0
 	count++
 
-	// Initialize id for destination
+	// Initialize id for request.Target
 	id[request.Target] = count
 	depths[request.Target] = closest_distance
 	count++
@@ -305,9 +305,11 @@ func getResponseIDS(request GetRequestParams) ExpectedResponse {
 		depth := 0
 		for _, path := range solution {
 			if path == request.Source || path == request.Target {
+				depth++
 				continue
 			}
 			if _, ok := id[path]; ok {
+				depth++
 				continue
 			}
 			id[path] = count
@@ -341,6 +343,13 @@ func getResponseIDS(request GetRequestParams) ExpectedResponse {
 		})
 	}
 
+	for _, path := range paths {
+		fmt.Println(path)
+	}
+
+	for _, node := range nodeResult {
+		fmt.Println(node)
+	}
 	var result GraphResult = GraphResult{
 		Nodes: nodeResult,
 		Paths: paths,
