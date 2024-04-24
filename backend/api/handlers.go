@@ -26,7 +26,7 @@ func HandlePostRequest(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// logic here to set the result
-	closest_distance, tree, solutions := traversal.BFS(payload.Source, payload.Target)
+	closest_distance, tree, solutions := traversal.MultiPathBFS(payload.Source, payload.Target)
 
 	// map id uses label(solution's parent) as the key and the id of each node as its value
 	id := make(map[string]int)
@@ -134,10 +134,14 @@ func GetRequestHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var response ExpectedResponse
-	if request.UsingBFS {
+	if request.UsingBFS && !request.AllPaths {
+		// response = getResponseBFSSinglePath(request)
+	} else if request.UsingBFS && request.AllPaths {
 		response = getResponseBFS(request)
-	} else {
+	} else if !request.UsingBFS && request.AllPaths {
 		response = getResponseIDS(request)
+	} else {
+		response = getResponseIDSSingle(request)
 	}
 
 	respondWithJSON(w, http.StatusOK, response)
@@ -147,7 +151,7 @@ func getResponseBFS(request GetRequestParams) ExpectedResponse {
 	startTime := time.Now()
 
 	// logic here to set the result
-	closest_distance, tree, solutions := traversal.BFS(request.Source, request.Target)
+	closest_distance, tree, solutions := traversal.MultiPathBFS(request.Source, request.Target)
 
 	// map id uses label(solution's parent) as the key and the id of each node as its value
 	id := make(map[string]int)
@@ -224,6 +228,54 @@ func getResponseBFS(request GetRequestParams) ExpectedResponse {
 	return response
 }
 
+// func getResponseBFSSinglePath(request GetRequestParams) ExpectedResponse {
+// 	startTime := time.Now()
+// 	// TODO: Integrate to ids algorithms here
+// 	_, tree,solutions := traversal.SingePathBFS(request.Source, request.Target)
+// 	// map id uses label(solution's parent) as the key and the id of each node as its value
+// 	id := make(map[string]int)
+
+// 	// map depths uses label(solution's parent) as the key and the level of each node as its value
+// 	depths := make(map[string]int)
+
+// 	// paths is a 2D array that stores the path of each solution
+// 	var paths []Path
+// 	count := 0
+// 	for _, path := range solutions {
+// 		id[path] = count
+// 		depths[path] = count
+// 		count++
+// 	}
+
+// 	var nodeResult []Node
+// 	for path, i := range id {
+// 		nodeResult = append(nodeResult, Node{
+// 			ID:    i,
+// 			Label: strings.ReplaceAll(path, "_", " "),
+// 			URL:   "https://en.wikipedia.org/wiki/" + strings.ReplaceAll(path, "_", " "),
+// 			Level: depths[path],
+// 		})
+// 	}
+
+// 	var result GraphResult = GraphResult{
+// 		Nodes: nodeResult,
+// 		Paths: paths,
+// 	}
+
+// 	sort.Slice(result.Nodes, func(i, j int) bool {
+// 		return result.Nodes[i].ID < result.Nodes[j].ID
+// 	})
+
+// 	response := ExpectedResponse{
+// 		Data:                &result,
+// 		Time:                int64(time.Since(startTime) / (time.Millisecond * 1000)),
+// 		DegreesOfSeparation: len(result.Paths[0]),
+// 		OK:                  true,
+// 	}
+
+// 	return response
+// }
+
 func getResponseIDS(request GetRequestParams) ExpectedResponse {
 	fmt.Printf("Source: %s\n", request.Source)
 	startTime := time.Now()
@@ -277,6 +329,54 @@ func getResponseIDS(request GetRequestParams) ExpectedResponse {
 		route = append(route, id[request.Source])
 		slices.Reverse(route)
 		paths = append(paths, route)
+	}
+
+	var nodeResult []Node
+	for path, i := range id {
+		nodeResult = append(nodeResult, Node{
+			ID:    i,
+			Label: strings.ReplaceAll(path, "_", " "),
+			URL:   "https://en.wikipedia.org/wiki/" + strings.ReplaceAll(path, "_", " "),
+			Level: depths[path],
+		})
+	}
+
+	var result GraphResult = GraphResult{
+		Nodes: nodeResult,
+		Paths: paths,
+	}
+
+	sort.Slice(result.Nodes, func(i, j int) bool {
+		return result.Nodes[i].ID < result.Nodes[j].ID
+	})
+
+	response := ExpectedResponse{
+		Data:                &result,
+		Time:                int64(time.Since(startTime) / (time.Millisecond * 1000)),
+		DegreesOfSeparation: len(result.Paths[0]),
+		OK:                  true,
+	}
+
+	return response
+}
+
+func getResponseIDSSingle(request GetRequestParams) ExpectedResponse {
+	startTime := time.Now()
+	// TODO: Integrate to ids algorithms here
+	_, solution := traversal.SinglePathIDS(request.Source, request.Target)
+	// map id uses label(solution's parent) as the key and the id of each node as its value
+	id := make(map[string]int)
+
+	// map depths uses label(solution's parent) as the key and the level of each node as its value
+	depths := make(map[string]int)
+
+	// paths is a 2D array that stores the path of each solution
+	var paths []Path
+	count := 0
+	for _, path := range solution {
+		id[path] = count
+		depths[path] = count
+		count++
 	}
 
 	var nodeResult []Node
