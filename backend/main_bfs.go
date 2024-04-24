@@ -8,12 +8,12 @@ import (
 
 func main() {
 	// https://www.sixdegreesofwikipedia.com/?source=Blog&target=Github
-	source := "Eriquius"
-	destination := "Acregoliath"
+	source := "Blog"
+	destination := "GitHub"
 	// source := "Blog"
 	// destination := "GitHub"
 
-	closest_distance, tree, solutions := traversal.BFS(source, destination)
+	closest_distance, tree, solutions := traversal.SingePathBFS(source, destination)
 
 	printSolution(source, destination, closest_distance, tree, solutions)
 }
