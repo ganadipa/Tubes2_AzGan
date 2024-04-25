@@ -12,9 +12,8 @@ const maxWorkers int = 500
 // - Closest distance between source and destination
 // - The tree representation (All edges but the ones connecting to the destination)
 // - The nodes of the tree that have a link to the destination
-func MultiPathBFS(source, destination string) (int, map[string]string, []string) {
+func MultiPathBFS(source, destination string) (int, map[string][]string, map[string]int) {
 	var distances = make(map[string]int)
-	var tree = make(map[string]string)
 	var solutions []string
 	var data = make(map[string][]string)
 	var request_sem = semaphore.NewSemaphore(maxWorkers)
@@ -61,7 +60,6 @@ func MultiPathBFS(source, destination string) (int, map[string]string, []string)
 					break
 				}
 				queue.Enqueue(neighbour)
-				tree[neighbour] = curr //neighbour  = child, curr = parent
 				distances[neighbour] = curr_dist + 1
 				go func(neighbour string) {
 					defer func() { request_sem.Release() }()
@@ -74,7 +72,8 @@ func MultiPathBFS(source, destination string) (int, map[string]string, []string)
 		currentDepth++
 	}
 	fmt.Printf("Total nodes: %d & %d\n", len(data), len(distances))
-	return closest_distance, tree, solutions
+	distances[destination] = closest_distance
+	return closest_distance, data, distances
 }
 
 func SingePathBFS(source, destination string) (int, map[string]string, string) {
@@ -141,3 +140,4 @@ func SingePathBFS(source, destination string) (int, map[string]string, string) {
 	fmt.Printf("Total nodes: %d & %d\n", len(data), len(distances))
 	return closest_distance, tree, ""
 }
+
