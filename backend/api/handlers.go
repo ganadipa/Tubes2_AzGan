@@ -317,6 +317,8 @@ func getResponseIDS(request GetRequestParams) ExpectedResponse {
 		}
 	}
 
+	fmt.Println(1)
+
 	for _, solution := range solutions {
 		var route []int
 		route = append(route, id[request.Target])
@@ -330,6 +332,8 @@ func getResponseIDS(request GetRequestParams) ExpectedResponse {
 		slices.Reverse(route)
 		paths = append(paths, route)
 	}
+
+	fmt.Println(2)
 
 	var nodeResult []Node
 	for path, i := range id {
@@ -349,6 +353,12 @@ func getResponseIDS(request GetRequestParams) ExpectedResponse {
 	sort.Slice(result.Nodes, func(i, j int) bool {
 		return result.Nodes[i].ID < result.Nodes[j].ID
 	})
+
+	fmt.Println(3)
+
+	for _, node := range result.Nodes {
+		fmt.Println(node.Level)
+	}
 
 	response := ExpectedResponse{
 		Data:                &result,

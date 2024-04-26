@@ -4,8 +4,6 @@ import React, { useRef } from 'react';
 const NotFound: React.FC = () => {
   const moon_ref = useRef<HTMLImageElement | null>(null);
   const starRef = useRef<HTMLImageElement | null>(null);
-  const asteroidRef = useRef<HTMLImageElement | null>(null);
-  const asteroidMiniRef = useRef<HTMLImageElement | null>(null);
 
 
 

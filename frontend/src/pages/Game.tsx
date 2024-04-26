@@ -45,22 +45,16 @@ const Game = () => {
   const [allPaths, setAllPaths] = useState<boolean>(true);
   const [data, setData] = useState<ExpectedResponse | null>(null); // State to hold the fetched data
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [error, setError] = useState<boolean>(false);
 
   async function handleSubmit() {
     if (!source || !target) return;
 
     setIsLoading(true);
-    setError(false);
     try {
       toast.success("Path finding started. Please wait...")
       const result = await search({source, target, using_bfs: usingBFS, all_paths: allPaths});
       setData(result.data)
-      if (result.error) {
-        setError(true)
-      }
     } catch (err) {
-      setError(true)
       toast.error("Error occured.")
     }
     if (data && !data?.ok) {
@@ -351,8 +345,6 @@ const ResultGraph = ({ result }: {result: GraphResult}) => {
     }
   }
 
-  console.log(NodesIdOnEachLevel )
-  console.log(positions)
 
   const horizontalGap = 100 / (colCounter + 2);
 

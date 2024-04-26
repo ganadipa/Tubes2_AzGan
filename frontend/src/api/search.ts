@@ -1,4 +1,3 @@
-import { useState, useEffect } from 'react';
 import { GraphResult } from '../pages/Game';
 
 export type SearchPayload = {

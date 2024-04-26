@@ -1,3 +1,1 @@
-cd src then
-npm install then
-npm run start
+Do docker compose up

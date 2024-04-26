@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  web:
+    depends_on:
+      - api
+    build: ./frontend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app  # Mounts the frontend directory to /app in the container
+  api:
+    build: ./backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app  # Mounts the backend directory to /app in the container
+
+volumes:
+  go-wikirace:
