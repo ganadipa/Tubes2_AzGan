@@ -95,8 +95,10 @@ func HandlePostRequest(w http.ResponseWriter, r *http.Request) {
 	response := ExpectedResponse{
 		Data:                &result,
 		Time:                int64(time.Since(startTime) / (time.Millisecond * 1000)),
-		DegreesOfSeparation: len(result.Paths[0]),
+		DegreesOfSeparation: len(result.Paths[0]) - 1,
 		OK:                  true,
+		TotalNodesVisited:   0,
+		TotalNodesCrawled:   0,
 	}
 
 	respondWithJSON(w, http.StatusOK, response)
@@ -219,8 +221,10 @@ func getResponseBFS(request GetRequestParams) ExpectedResponse {
 	response := ExpectedResponse{
 		Data:                &result,
 		Time:                int64(time.Since(startTime) / (time.Millisecond * 1000)),
-		DegreesOfSeparation: len(result.Paths[0]),
+		DegreesOfSeparation: len(result.Paths[0]) - 1,
 		OK:                  true,
+		TotalNodesVisited:   0,
+		TotalNodesCrawled:   0,
 	}
 
 	return response
@@ -293,8 +297,10 @@ func getResponseBFSSinglePath(request GetRequestParams) ExpectedResponse {
 	response := ExpectedResponse{
 		Data:                &result,
 		Time:                int64(time.Since(startTime) / (time.Millisecond * 1000)),
-		DegreesOfSeparation: len(result.Paths[0]),
+		DegreesOfSeparation: len(result.Paths[0]) - 1,
 		OK:                  true,
+		TotalNodesVisited:   0,
+		TotalNodesCrawled:   0,
 	}
 
 	return response
@@ -396,8 +402,10 @@ func getResponseIDS(request GetRequestParams) ExpectedResponse {
 	response := ExpectedResponse{
 		Data:                &result,
 		Time:                int64(time.Since(startTime) / (time.Millisecond * 1000)),
-		DegreesOfSeparation: len(result.Paths[0]),
+		DegreesOfSeparation: len(result.Paths[0]) - 1,
 		OK:                  true,
+		TotalNodesVisited:   0,
+		TotalNodesCrawled:   0,
 	}
 
 	return response
@@ -451,8 +459,10 @@ func getResponseIDSSingle(request GetRequestParams) ExpectedResponse {
 	response := ExpectedResponse{
 		Data:                &result,
 		Time:                int64(time.Since(startTime) / (time.Millisecond * 1000)),
-		DegreesOfSeparation: len(result.Paths[0]),
+		DegreesOfSeparation: len(result.Paths[0]) - 1,
 		OK:                  true,
+		TotalNodesVisited:   0,
+		TotalNodesCrawled:   0,
 	}
 
 	return response

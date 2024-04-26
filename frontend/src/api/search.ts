@@ -12,6 +12,8 @@ export type ExpectedResponse = {
     time: number;
     degreesOfSeparation: number;
     ok: boolean;
+    totalNodesVisited: number;
+    totalNodesCrawled: number;
 }
 
 function delay(ms: number) {
@@ -22,7 +24,7 @@ function delay(ms: number) {
 
 export async function search(payload: SearchPayload): Promise<{data: ExpectedResponse, error: boolean}> {
   if (!payload.source || !payload.target) {
-    return Promise.resolve({data: {data: null, time: 0, degreesOfSeparation: 0, ok: false}, error: true});
+    return Promise.resolve({data: {data: null, time: 0, degreesOfSeparation: 0, ok: false, totalNodesVisited: 0, totalNodesCrawled: 0}, error: true});
   }
 
   const endpoint = `http://localhost:8000/get?source=${payload.source}&target=${payload.target}&using_bfs=${payload.using_bfs}&all_paths=${payload.all_paths}`;
@@ -44,7 +46,7 @@ export async function search(payload: SearchPayload): Promise<{data: ExpectedRes
     const result = await response.json();
     return Promise.resolve({data: result, error: false});
   } catch (error) {
-    return Promise.resolve({data: {data: null, time: 0, degreesOfSeparation: 0, ok: false}, error: true});
+    return Promise.resolve({data: {data: null, time: 0, degreesOfSeparation: 0, ok: false, totalNodesCrawled: 0, totalNodesVisited: 0}, error: true});
   }
 }
 

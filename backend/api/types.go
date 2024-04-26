@@ -12,6 +12,8 @@ type ExpectedResponse struct {
 	Time                int64        `json:"time"`
 	DegreesOfSeparation int          `json:"degreesOfSeparation"`
 	OK                  bool         `json:"ok"`
+	TotalNodesVisited   int          `json:"totalNodesVisited"`
+	TotalNodesCrawled   int          `json:"totalNodesCrawled"`
 }
 
 type Node struct {

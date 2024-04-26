@@ -79,6 +79,8 @@ const Game = () => {
         {data?.ok && !isLoading ?
         <div className='text-white md:text-4xl text-xl flex items-center justify-center text-center'>
           <span>Found {data.data?.paths.length} paths with {data.degreesOfSeparation} degrees of separation from {source} to {target} in {data.time} seconds!</span>
+          <br/>
+          <span>With total nodes visited: {data.totalNodesVisited}</span>
         </div> : null }
       </BallBackground>
       {data?.ok ? <ResultSection result = {data.data as GraphResult}/> : null}
