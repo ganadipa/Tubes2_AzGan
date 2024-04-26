@@ -26,7 +26,7 @@ func HandlePostRequest(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// logic here to set the result
-	closest_distance, tree, solutions := traversal.MultiPathBFS(payload.Source, payload.Target)
+	_, data, levels := traversal.MultiPathBFS(payload.Source, payload.Target)
 
 	// map id uses label(solution's parent) as the key and the id of each node as its value
 	id := make(map[string]int)
@@ -36,41 +36,40 @@ func HandlePostRequest(w http.ResponseWriter, r *http.Request) {
 
 	// paths is a 2D array that stores the path of each solution
 	var paths []Path
-	count := 0
 
-	// Initialize id for source
+	var arrayOfPath []string
+
+	count := 0
+	arrayOfPath = append(arrayOfPath, payload.Source)
 	id[payload.Source] = count
 	depths[payload.Source] = 0
 	count++
+	var solutions [][]string
 
-	// Initialize id for destination
-	id[payload.Target] = count
-	depths[payload.Target] = closest_distance
-	count++
+	traversal.GenerateSolution(payload.Source, payload.Target, data, levels, &arrayOfPath, &solutions)
 
+	fmt.Println(solutions)
 	for _, solution := range solutions {
-		curr := solution
-		var path []string
-		var route []int
-		route = append(route, id[payload.Target])
-		temp := closest_distance - 1
-		for curr != payload.Source {
-			// Increment id for each path
-			if _, ok := id[curr]; ok {
+		level := 0
+		fmt.Println("Solution:")
+		for _, path := range solution {
+			if _, ok := id[path]; ok {
+				level++
 				continue
 			}
-			route = append(route, count)
-			path = append(path, curr)
-			id[curr] = count
-			depths[curr] = temp
+			fmt.Println(path)
+			id[path] = count
+			depths[path] = levels[path]
 			count++
-			temp--
-			curr = tree[curr]
+			level++
 		}
-		route = append(route, 0)
-		path = append(path, payload.Source) // Append payload.Source to the path
-		slices.Reverse(path)                // Reverse the path
-		slices.Reverse(route)               // Reverse the route
+	}
+
+	for _, solution := range solutions {
+		var route []int
+		for _, label := range solution {
+			route = append(route, id[label])
+		}
 		paths = append(paths, route)
 	}
 
@@ -135,7 +134,7 @@ func GetRequestHandler(w http.ResponseWriter, r *http.Request) {
 
 	var response ExpectedResponse
 	if request.UsingBFS && !request.AllPaths {
-		// response = getResponseBFSSinglePath(request)
+		response = getResponseBFSSinglePath(request)
 	} else if request.UsingBFS && request.AllPaths {
 		response = getResponseBFS(request)
 	} else if !request.UsingBFS && request.AllPaths {
@@ -151,7 +150,7 @@ func getResponseBFS(request GetRequestParams) ExpectedResponse {
 	startTime := time.Now()
 
 	// logic here to set the result
-	closest_distance, tree, solutions := traversal.MultiPathBFS(request.Source, request.Target)
+	_, data, levels := traversal.MultiPathBFS(request.Source, request.Target)
 
 	// map id uses label(solution's parent) as the key and the id of each node as its value
 	id := make(map[string]int)
@@ -161,41 +160,40 @@ func getResponseBFS(request GetRequestParams) ExpectedResponse {
 
 	// paths is a 2D array that stores the path of each solution
 	var paths []Path
-	count := 0
 
-	// Initialize id for source
+	var arrayOfPath []string
+
+	count := 0
+	arrayOfPath = append(arrayOfPath, request.Source)
 	id[request.Source] = count
 	depths[request.Source] = 0
 	count++
+	var solutions [][]string
 
-	// Initialize id for destination
-	id[request.Target] = count
-	depths[request.Target] = closest_distance
-	count++
+	traversal.GenerateSolution(request.Source, request.Target, data, levels, &arrayOfPath, &solutions)
 
+	fmt.Println(solutions)
 	for _, solution := range solutions {
-		curr := solution
-		var path []string
-		var route []int
-		route = append(route, id[request.Target])
-		temp := closest_distance - 1
-		for curr != request.Source {
-			// Increment id for each path
-			if _, ok := id[curr]; ok {
+		level := 0
+		fmt.Println("Solution:")
+		for _, path := range solution {
+			if _, ok := id[path]; ok {
+				level++
 				continue
 			}
-			route = append(route, count)
-			path = append(path, curr)
-			id[curr] = count
-			depths[curr] = temp
+			fmt.Println(path)
+			id[path] = count
+			depths[path] = levels[path]
 			count++
-			temp--
-			curr = tree[curr]
+			level++
 		}
-		route = append(route, 0)
-		path = append(path, request.Source) // Append request.Source to the path
-		slices.Reverse(path)                // Reverse the path
-		slices.Reverse(route)               // Reverse the route
+	}
+
+	for _, solution := range solutions {
+		var route []int
+		for _, label := range solution {
+			route = append(route, id[label])
+		}
 		paths = append(paths, route)
 	}
 
@@ -228,53 +226,79 @@ func getResponseBFS(request GetRequestParams) ExpectedResponse {
 	return response
 }
 
-// func getResponseBFSSinglePath(request GetRequestParams) ExpectedResponse {
-// 	startTime := time.Now()
-// 	// TODO: Integrate to ids algorithms here
-// 	_, tree,solutions := traversal.SingePathBFS(request.Source, request.Target)
-// 	// map id uses label(solution's parent) as the key and the id of each node as its value
-// 	id := make(map[string]int)
+func getResponseBFSSinglePath(request GetRequestParams) ExpectedResponse {
+	startTime := time.Now()
+	// TODO: Integrate to ids algorithms here
+	closest_distance, tree, solution := traversal.SingePathBFS(request.Source, request.Target)
+	// map id uses label(solution's parent) as the key and the id of each node as its value
+	id := make(map[string]int)
 
-// 	// map depths uses label(solution's parent) as the key and the level of each node as its value
-// 	depths := make(map[string]int)
+	// map depths uses label(solution's parent) as the key and the level of each node as its value
+	depths := make(map[string]int)
 
-// 	// paths is a 2D array that stores the path of each solution
-// 	var paths []Path
-// 	count := 0
-// 	for _, path := range solutions {
-// 		id[path] = count
-// 		depths[path] = count
-// 		count++
-// 	}
+	// paths is a 2D array that stores the path of each solution
+	var paths []Path
+	var path []int
+	count := 0
 
-// 	var nodeResult []Node
-// 	for path, i := range id {
-// 		nodeResult = append(nodeResult, Node{
-// 			ID:    i,
-// 			Label: strings.ReplaceAll(path, "_", " "),
-// 			URL:   "https://en.wikipedia.org/wiki/" + strings.ReplaceAll(path, "_", " "),
-// 			Level: depths[path],
-// 		})
-// 	}
+	// Initialize id for source
+	id[request.Source] = count
+	depths[request.Source] = 0
+	count++
 
-// 	var result GraphResult = GraphResult{
-// 		Nodes: nodeResult,
-// 		Paths: paths,
-// 	}
+	// Initialize id for request.Target
+	id[request.Target] = count
+	depths[request.Target] = closest_distance
+	count++
 
-// 	sort.Slice(result.Nodes, func(i, j int) bool {
-// 		return result.Nodes[i].ID < result.Nodes[j].ID
-// 	})
+	current := solution
+	level := closest_distance - 1
 
-// 	response := ExpectedResponse{
-// 		Data:                &result,
-// 		Time:                int64(time.Since(startTime) / (time.Millisecond * 1000)),
-// 		DegreesOfSeparation: len(result.Paths[0]),
-// 		OK:                  true,
-// 	}
+	path = append(path, id[request.Target])
 
-// 	return response
-// }
+	for current != request.Source {
+		id[current] = count
+		depths[current] = level
+		path = append(path, id[current])
+		count++
+		level--
+		current = tree[current]
+	}
+
+	path = append(path, id[request.Source])
+
+	slices.Reverse(path)
+
+	paths = append(paths, path)
+
+	var nodeResult []Node
+	for path, i := range id {
+		nodeResult = append(nodeResult, Node{
+			ID:    i,
+			Label: strings.ReplaceAll(path, "_", " "),
+			URL:   "https://en.wikipedia.org/wiki/" + strings.ReplaceAll(path, "_", " "),
+			Level: depths[path],
+		})
+	}
+
+	var result GraphResult = GraphResult{
+		Nodes: nodeResult,
+		Paths: paths,
+	}
+
+	sort.Slice(result.Nodes, func(i, j int) bool {
+		return result.Nodes[i].ID < result.Nodes[j].ID
+	})
+
+	response := ExpectedResponse{
+		Data:                &result,
+		Time:                int64(time.Since(startTime) / (time.Millisecond * 1000)),
+		DegreesOfSeparation: len(result.Paths[0]),
+		OK:                  true,
+	}
+
+	return response
+}
 
 func getResponseIDS(request GetRequestParams) ExpectedResponse {
 	fmt.Printf("Source: %s\n", request.Source)
@@ -296,7 +320,7 @@ func getResponseIDS(request GetRequestParams) ExpectedResponse {
 	depths[request.Source] = 0
 	count++
 
-	// Initialize id for destination
+	// Initialize id for request.Target
 	id[request.Target] = count
 	depths[request.Target] = currentDepth
 	count++
@@ -305,9 +329,11 @@ func getResponseIDS(request GetRequestParams) ExpectedResponse {
 		depth := 0
 		for _, path := range solution {
 			if path == request.Source || path == request.Target {
+				depth++
 				continue
 			}
 			if _, ok := id[path]; ok {
+				depth++
 				continue
 			}
 			id[path] = count
@@ -345,6 +371,13 @@ func getResponseIDS(request GetRequestParams) ExpectedResponse {
 		})
 	}
 
+	for _, path := range paths {
+		fmt.Println(path)
+	}
+
+	for _, node := range nodeResult {
+		fmt.Println(node)
+	}
 	var result GraphResult = GraphResult{
 		Nodes: nodeResult,
 		Paths: paths,
@@ -398,6 +431,13 @@ func getResponseIDSSingle(request GetRequestParams) ExpectedResponse {
 			Level: depths[path],
 		})
 	}
+
+	var path []int
+	for i := 0; i < len(solution); i++ {
+		path = append(path, id[solution[i]])
+	}
+
+	paths = append(paths, path)
 
 	var result GraphResult = GraphResult{
 		Nodes: nodeResult,

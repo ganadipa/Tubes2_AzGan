@@ -8,7 +8,9 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      - ./frontend:/app  # Mounts the frontend directory to /app in the container
+      - ./frontend/src:/app/src
+      - ./frontend/public:/app/public
+
   api:
     build: ./backend
     ports:
