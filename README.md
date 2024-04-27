@@ -26,7 +26,7 @@ Docker must be installed in order to run this program.
   ``` 
 
 
-3. Make sure docker is on and type this in cmd
+3. Make sure docker is on and type this in your terminal
 ```
 docker compose up
 ```
