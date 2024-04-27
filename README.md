@@ -1,5 +1,5 @@
 # Tugas Besar Strategi Algoritma AzGan
-## Deskripsi Singkat
+## Description
 Wikirace is a game that challenges players to find the shortest path between two Wikipedia articles by only clicking the hyperlinks within the articles. In this version of the game, we use two search algorithms: Breadth-First Search (BFS) and Iterative Deepening Search (IDS).
 
 ## Algorithms
