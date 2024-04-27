@@ -19,7 +19,7 @@ Docker must be installed in order to run this program.
  git clone https://github.com/ganadipa/Tubes2_AzGan.git
  ```
 
-2. Navigate to `Tubes2_FE_AzmiKerenAbis` directory
+2. Navigate to `Tubes2_FE_AzmiKerenAbis/src` directory
 
   ```bash
   cd Tubes2_FE_AzmiKerenAbis/src
