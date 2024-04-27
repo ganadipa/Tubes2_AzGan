@@ -76,7 +76,7 @@ func MultiPathBFS(source, destination string) (int, map[string][]string, map[str
 	return closest_distance, data, distances
 }
 
-func SingePathBFS(source, destination string) (int, map[string]string, string) {
+func SingePathBFS(source, destination string) (int, map[string]string,map[string][]string, string) {
 	var distances = make(map[string]int)
 	var tree = make(map[string]string)
 	var data = make(map[string][]string)
@@ -121,7 +121,7 @@ func SingePathBFS(source, destination string) (int, map[string]string, string) {
 					fmt.Printf("Found solution %s\n", curr)
 					found = true
 					closest_distance = curr_dist + 1
-					return closest_distance, tree, curr
+					return closest_distance, tree, data,curr
 					// break
 				}
 				queue.Enqueue(neighbour)
@@ -138,6 +138,5 @@ func SingePathBFS(source, destination string) (int, map[string]string, string) {
 		currentDepth++
 	}
 	fmt.Printf("Total nodes: %d & %d\n", len(data), len(distances))
-	return closest_distance, tree, ""
+	return closest_distance, tree,data, ""
 }
-

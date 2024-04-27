@@ -62,7 +62,7 @@ func multiPathDFSsearch(node, destination string, currentDepth, requiredDepth in
 	}
 }
 
-func MultiPathIDS(source, destination string) (int, [][]string) {
+func MultiPathIDS(source, destination string) (int, map[string][]string, [][]string) {
 	var data = make(map[string][]string)
 	var solutions [][]string
 	var distances = make(map[string]int)
@@ -98,7 +98,7 @@ func MultiPathIDS(source, destination string) (int, [][]string) {
 
 		currentDepth++
 	}
-	return currentDepth, solutions
+	return currentDepth, data, solutions
 }
 
 func singlePathDFSsearch(node, destination string, currentDepth, requiredDepth int, distances map[string]int, data map[string][]string, path *[]string, isFound *bool) {
@@ -127,7 +127,7 @@ func singlePathDFSsearch(node, destination string, currentDepth, requiredDepth i
 	}
 }
 
-func SinglePathIDS(source, destination string) (int, []string) {
+func SinglePathIDS(source, destination string) (int,map[string][]string, []string) {
 	var data = make(map[string][]string)
 	var distances = make(map[string]int)
 	var request_sem = semaphore.NewSemaphore(maxWorkers)
@@ -145,7 +145,7 @@ func SinglePathIDS(source, destination string) (int, []string) {
 		singlePathDFSsearch(source, destination, 0, currentDepth, distances, data, &path, &isFound)
 
 		if isFound {
-			return currentDepth, path
+			return currentDepth,data, path
 		}
 
 		newNodes := 0

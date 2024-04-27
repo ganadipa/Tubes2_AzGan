@@ -97,7 +97,7 @@ func HandlePostRequest(w http.ResponseWriter, r *http.Request) {
 		Time:                int64(time.Since(startTime) / (time.Millisecond * 1000)),
 		DegreesOfSeparation: len(result.Paths[0]) - 1,
 		OK:                  true,
-		TotalNodesVisited:   0,
+		TotalNodesVisited:   len(data) + 1,
 		TotalNodesCrawled:   0,
 	}
 
@@ -223,7 +223,7 @@ func getResponseBFS(request GetRequestParams) ExpectedResponse {
 		Time:                int64(time.Since(startTime) / (time.Millisecond * 1000)),
 		DegreesOfSeparation: len(result.Paths[0]) - 1,
 		OK:                  true,
-		TotalNodesVisited:   0,
+		TotalNodesVisited:   len(data) + 1,
 		TotalNodesCrawled:   0,
 	}
 
@@ -233,7 +233,7 @@ func getResponseBFS(request GetRequestParams) ExpectedResponse {
 func getResponseBFSSinglePath(request GetRequestParams) ExpectedResponse {
 	startTime := time.Now()
 	// TODO: Integrate to ids algorithms here
-	closest_distance, tree, solution := traversal.SingePathBFS(request.Source, request.Target)
+	closest_distance, tree, data, solution := traversal.SingePathBFS(request.Source, request.Target)
 	// map id uses label(solution's parent) as the key and the id of each node as its value
 	id := make(map[string]int)
 
@@ -299,7 +299,7 @@ func getResponseBFSSinglePath(request GetRequestParams) ExpectedResponse {
 		Time:                int64(time.Since(startTime) / (time.Millisecond * 1000)),
 		DegreesOfSeparation: len(result.Paths[0]) - 1,
 		OK:                  true,
-		TotalNodesVisited:   0,
+		TotalNodesVisited:   len(data) + 1,
 		TotalNodesCrawled:   0,
 	}
 
@@ -310,7 +310,7 @@ func getResponseIDS(request GetRequestParams) ExpectedResponse {
 	fmt.Printf("Source: %s\n", request.Source)
 	startTime := time.Now()
 	// TODO: Integrate to ids algorithms here
-	currentDepth, solutions := traversal.MultiPathIDS(request.Source, request.Target)
+	currentDepth, data, solutions := traversal.MultiPathIDS(request.Source, request.Target)
 	// map id uses label(solution's parent) as the key and the id of each node as its value
 	id := make(map[string]int)
 
@@ -404,7 +404,7 @@ func getResponseIDS(request GetRequestParams) ExpectedResponse {
 		Time:                int64(time.Since(startTime) / (time.Millisecond * 1000)),
 		DegreesOfSeparation: len(result.Paths[0]) - 1,
 		OK:                  true,
-		TotalNodesVisited:   0,
+		TotalNodesVisited:   len(data) + 1,
 		TotalNodesCrawled:   0,
 	}
 
@@ -414,7 +414,7 @@ func getResponseIDS(request GetRequestParams) ExpectedResponse {
 func getResponseIDSSingle(request GetRequestParams) ExpectedResponse {
 	startTime := time.Now()
 	// TODO: Integrate to ids algorithms here
-	_, solution := traversal.SinglePathIDS(request.Source, request.Target)
+	_, data, solution := traversal.SinglePathIDS(request.Source, request.Target)
 	// map id uses label(solution's parent) as the key and the id of each node as its value
 	id := make(map[string]int)
 
@@ -461,7 +461,7 @@ func getResponseIDSSingle(request GetRequestParams) ExpectedResponse {
 		Time:                int64(time.Since(startTime) / (time.Millisecond * 1000)),
 		DegreesOfSeparation: len(result.Paths[0]) - 1,
 		OK:                  true,
-		TotalNodesVisited:   0,
+		TotalNodesVisited:   len(data) + 1,
 		TotalNodesCrawled:   0,
 	}
 
