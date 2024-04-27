@@ -22,7 +22,7 @@ Docker must be installed in order to run this program.
 2. Navigate to `Tubes2_FE_AzmiKerenAbis` directory
 
   ```bash
-  cd Tubes2_FE_AzmiKerenAbis
+  cd Tubes2_FE_AzmiKerenAbis/src
   ``` 
 
 
