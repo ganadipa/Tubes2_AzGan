@@ -77,7 +77,7 @@ const Game = () => {
           isLoading={isLoading}
         />
         {data?.ok && !isLoading ?
-        <div className='text-white md:text-4xl text-xl flex items-center justify-center text-center'>
+        <div className='flex flex-col text-white md:text-4xl text-xl flex items-center justify-center text-center'>
           <span>Found {data.data?.paths.length} paths with {data.degreesOfSeparation} degrees of separation from {source} to {target} in {data.time} seconds!</span>
           <br/>
           <span>With total nodes visited: {data.totalNodesVisited}</span>

@@ -98,7 +98,7 @@ func HandlePostRequest(w http.ResponseWriter, r *http.Request) {
 		DegreesOfSeparation: len(result.Paths[0]) - 1,
 		OK:                  true,
 		TotalNodesVisited:   len(data) + 1,
-		TotalNodesCrawled:   0,
+		TotalNodesCrawled:   len(data) + 1,
 	}
 
 	respondWithJSON(w, http.StatusOK, response)
@@ -224,7 +224,7 @@ func getResponseBFS(request GetRequestParams) ExpectedResponse {
 		DegreesOfSeparation: len(result.Paths[0]) - 1,
 		OK:                  true,
 		TotalNodesVisited:   len(data) + 1,
-		TotalNodesCrawled:   0,
+		TotalNodesCrawled:   len(data) + 1,
 	}
 
 	return response
@@ -300,7 +300,7 @@ func getResponseBFSSinglePath(request GetRequestParams) ExpectedResponse {
 		DegreesOfSeparation: len(result.Paths[0]) - 1,
 		OK:                  true,
 		TotalNodesVisited:   len(data) + 1,
-		TotalNodesCrawled:   0,
+		TotalNodesCrawled:   len(data) + 1,
 	}
 
 	return response
@@ -405,7 +405,7 @@ func getResponseIDS(request GetRequestParams) ExpectedResponse {
 		DegreesOfSeparation: len(result.Paths[0]) - 1,
 		OK:                  true,
 		TotalNodesVisited:   len(data) + 1,
-		TotalNodesCrawled:   0,
+		TotalNodesCrawled:   len(data) + 1,
 	}
 
 	return response
@@ -462,7 +462,7 @@ func getResponseIDSSingle(request GetRequestParams) ExpectedResponse {
 		DegreesOfSeparation: len(result.Paths[0]) - 1,
 		OK:                  true,
 		TotalNodesVisited:   len(data) + 1,
-		TotalNodesCrawled:   0,
+		TotalNodesCrawled:   len(data) + 1,
 	}
 
 	return response
