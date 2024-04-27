@@ -16,7 +16,7 @@ Docker must be installed in order to run this program.
 ## How to run
 1. Clone this repo
  ```bash
- git clone https://github.com/AlthariqFairuz/Tubes1_SinggalangJaya.git](https://github.com/ganadipa/Tubes2_AzGan.git
+ git clone https://github.com/ganadipa/Tubes2_AzGan.git
  ```
 
 2. Navigate to `Tubes2_FE_AzmiKerenAbis` directory
