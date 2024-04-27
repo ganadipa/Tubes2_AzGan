@@ -37,16 +37,17 @@ func Crawl(name string) CrawlResult {
 	// Load the HTML document
 	doc, err := goquery.NewDocumentFromReader(response.Body)
 	if err != nil {
-		log.Fatal("Error loading HTML:", err)
+		fmt.Printf("Error parsing html %s\n", name)
+		return CrawlResult{ name, []string{} }
 	}
 
 	var result_set = make(map[string]bool)
 
 	// Find the <div> with id "bodyContent" and loop through its <a> tags
-	doc.Find("a").Each(func(i int, s *goquery.Selection) {
+	doc.Find("#bodyContent a").Each(func(i int, s *goquery.Selection) {
 		// Get the href attribute of the <a> tag
 		link, exists := s.Attr("href")
-		if exists && len(link) >= 6 && link[:6] == "/wiki/" {
+		if exists && len(link) >= 6 && link[:6] == "/wiki/" && !strings.ContainsAny(link[6:], "#") {
 			result_set[link[6:]] = true
 		}
 	})
